@@ -12,8 +12,9 @@ import { CompanyModule } from './company/company.module';
 import { UserModule } from './user/user.module';
 import { User } from './user/entities/user.entity';
 import * as dotenv from 'dotenv';
+import { ContractModule } from './contract/contract.module';
+import { PaymentModule } from './payment/payment.module';
 dotenv.config();
-
 
 @Module({
   imports: [
@@ -38,19 +39,11 @@ dotenv.config();
         autoLoadEntities: true,
       }),
     }),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.DB_HOST,
-      port: parseInt(process.env.DB_PORT, 10),
-      username: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME,
-      entities: [JobPosting, User],
-      synchronize: true, // Automatically create tables (disable in production)
-    }),
     JobPostingsModule,
     CompanyModule,
-    UserModule
+    UserModule,
+    ContractModule,
+    PaymentModule,
   ],
   controllers: [],
   providers: [RolesGuard, PermissionGuard, PermissionService],

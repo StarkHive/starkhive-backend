@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Contract } from 'src/contract/entities/contract.entity';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 
 @Entity()
 export class JobPosting {
@@ -16,4 +17,7 @@ export class JobPosting {
 
   @Column({ type: 'decimal', nullable: true })
   salary?: number;
+  
+  @OneToMany(() => Contract, (contract) => contract.jobPosting)
+  contracts: Contract[];
 }
