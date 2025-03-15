@@ -1,7 +1,15 @@
-import { Controller, Get, Post, Body, Param, Patch, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Patch,
+  Delete,
+} from '@nestjs/common';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { CompanyService } from './provider/company.service';
-import { UpdateCompanyDto } from './DTO/updateCompanyDto';
+import { UpdateCompanyDto } from './dto/updateCompanyDto';
 
 @Controller('companies')
 export class CompanyController {
@@ -23,7 +31,10 @@ export class CompanyController {
   }
 
   @Patch(':id')
-  async update(@Param('id') id: number, @Body() updateCompanyDto: UpdateCompanyDto) {
+  async update(
+    @Param('id') id: number,
+    @Body() updateCompanyDto: UpdateCompanyDto,
+  ) {
     return `Update method - Updating company with ID ${id}!`;
   }
 

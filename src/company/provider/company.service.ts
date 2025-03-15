@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { CreateCompanyDto } from '../DTO/create-company.dto';
-import { UpdateCompanyDto } from '../DTO/updateCompanyDto';
+import { CreateCompanyDto } from '../dto/create-company.dto';
+import { UpdateCompanyDto } from '../dto/updateCompanyDto';
 
 @Injectable()
 export class CompanyService {
