@@ -21,7 +21,7 @@ jobs:
         run: npm run lint
 
   build:
-    needs: lint # Ensure linting passes before building
+    # needs: lint # Ensure linting passes before building
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
