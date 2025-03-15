@@ -14,13 +14,12 @@ import { User } from './user/entities/user.entity';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-
 @Module({
   imports: [
     // Load environment variables globally
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env.development', '.env.production', '.env.test',],
+      envFilePath: ['.env.development', '.env.production', '.env.test'],
     }),
 
     // Configure TypeORM with environment variables
@@ -40,17 +39,17 @@ dotenv.config();
     }),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: process.env.DB_HOST,
-      port: parseInt(process.env.DB_PORT, 10),
-      username: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME,
+      host: process.env.DATABASE_HOST,
+      port: parseInt(process.env.DATABASE_PORT, 10),
+      username: process.env.DATABASE_USER,
+      password: process.env.DATABASE_PASSWORD,
+      database: process.env.DATABASE_NAME,
       entities: [JobPosting, User],
       synchronize: true, // Automatically create tables (disable in production)
     }),
     JobPostingsModule,
     CompanyModule,
-    UserModule
+    UserModule,
   ],
   controllers: [],
   providers: [RolesGuard, PermissionGuard, PermissionService],
