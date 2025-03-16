@@ -2,6 +2,7 @@
 import { IsEmail, IsNotEmpty, Length } from 'class-validator';
 import { Contract } from 'src/contract/entities/contract.entity';
 import { Payment } from 'src/payment/entities/payment.entity';
+import { Session } from 'src/sessions/entities/session.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -38,10 +39,12 @@ export class User {
   @OneToMany(() => Payment, (payment) => payment.user)
   payments: Payment[];
 
+  @OneToMany(() => Session, (session) => session.user)
+  sessions: Session[];
+
   @CreateDateColumn()
   createdAt: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;
-  sessions: any;
 }

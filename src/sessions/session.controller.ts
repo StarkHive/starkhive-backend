@@ -3,26 +3,38 @@ import {
   Controller,
   Get,
   Delete,
+  Req,
   Param,
-  Request,
   UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { SessionService } from './session.service';
-import { AuthGuard } from 'src/auth/auth.guard';
+import { AuthenticatedRequest } from 'src/common/authenticated-request.interface';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
 @Controller('sessions')
+@UseGuards(JwtAuthGuard) // Protect all session routes
 export class SessionController {
   constructor(private readonly sessionService: SessionService) {}
 
   @Get()
-  @UseGuards(AuthGuard)
-  async getSessions(@Request() req) {
-    return this.sessionService.getUserSessions(req.user.id);
+  async getUserSessions(@Req() req: AuthenticatedRequest) {
+    const userId = Number(req.user.id); // Convert string to number
+    return this.sessionService.getUserSessions(userId);
   }
 
-  @Delete(':id')
-  @UseGuards(AuthGuard)
-  async terminateSession(@Request() req, @Param('id') sessionId: number) {
-    return this.sessionService.terminateSession(sessionId, req.user.id);
+  @Delete(':sessionId')
+  async terminateSession(
+    @Req() req: AuthenticatedRequest,
+    @Param('sessionId', ParseIntPipe) sessionId: number, // Ensure sessionId is a number
+  ) {
+    const userId = Number(req.user.id); // Convert string to number
+    return this.sessionService.terminateSession(sessionId, userId);
+  }
+
+  @Delete()
+  async terminateAllSessions(@Req() req: AuthenticatedRequest) {
+    const userId = Number(req.user.id); // Convert string to number
+    return this.sessionService.terminateAllSessions(userId);
   }
 }

@@ -3,21 +3,17 @@ import { Module, MiddlewareConsumer } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JobPostingsModule } from './job-postings/job-postings.module';
-
+import { JobPosting } from './job-postings/entities/job-posting.entity';
 import { AuthMiddleware } from './auth/middleware/auth.middleware';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { PermissionService } from './auth/services/permission.service';
 import { PermissionGuard } from './auth/guards/permissions.guard';
 import { CompanyModule } from './company/company.module';
 import { UserModule } from './user/user.module';
-
+import { User } from './user/entities/user.entity';
 import * as dotenv from 'dotenv';
 import { ContractModule } from './contract/contract.module';
 import { PaymentModule } from './payment/payment.module';
-
-import { AuthService } from './auth/auth.service';
-
-import { SessionModule } from 'src/sessions/session.module';
 dotenv.config();
 
 @Module({
@@ -25,12 +21,12 @@ dotenv.config();
     // Load environment variables globally
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env.development', '.env.production', '.env.test'],
+      envFilePath: ['.env.development', '.env.production', '.env.test',],
     }),
 
     // Configure TypeORM with environment variables
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule, SessionModule],
+      imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
@@ -50,8 +46,7 @@ dotenv.config();
     PaymentModule,
   ],
   controllers: [],
-  providers: [RolesGuard, PermissionGuard, PermissionService, AuthService],
-  exports: [AuthService],
+  providers: [RolesGuard, PermissionGuard, PermissionService],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
