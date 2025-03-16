@@ -1,0 +1,9 @@
+POST http://localhost:3000/companies
+Content-Type: application/json
+
+{
+  "name": "TechHive Inc.",
+  "description": "A leading software development company.",
+  "website": "https://techhive.com",
+  "walletAddress": "0xABC123DEF456"
+}
