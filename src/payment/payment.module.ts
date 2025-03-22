@@ -13,7 +13,6 @@ import { User } from '../user/entities/user.entity';
 import { Contract } from '../contract/entities/contract.entity';
 import { PermissionGuard } from 'src/auth/guards/permissions.guard';
 import { PermissionService } from 'src/auth/services/permission.service';
-
 @Module({
   imports: [
     ConfigModule,
@@ -31,8 +30,8 @@ import { PermissionService } from 'src/auth/services/permission.service';
     PaymentService,
     TransactionLogService,
     PermissionGuard,
-    PaymentRepository,
     PermissionService,
+    PaymentRepository,
   ],
   exports: [PaymentService, PermissionService],
 })

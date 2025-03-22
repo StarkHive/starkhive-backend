@@ -1,6 +1,6 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like } from 'typeorm';
+import { Repository, ILike } from 'typeorm';
 import { JobPosting } from './entities/job-posting.entity';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
@@ -16,18 +16,47 @@ export class JobPostingsService {
     private readonly notificationService: NotificationsService,
   ) {}
 
-  async findAll(page: number = 1, limit: number = 10, search?: string) {
+  async findAll(
+    page: number = 1,
+    limit: number = 10,
+    title?: string,
+    company?: string,
+    location?: string,
+    sortBy: string = 'date',
+    sortOrder: 'ASC' | 'DESC' = 'DESC', // Default: newest first
+  ) {
+    const where: any = {};
+
+    if (title) {
+      where.title = ILike(`%${title}%`);
+    }
+    if (location) {
+      where.location = ILike(`%${location}%`);
+    }
+    if (company) {
+      where.company = ILike(`%${company}%`);
+    }
+
+    // Define allowed sorting fields
+    const validSortFields: Record<string, string> = {
+      relevance: 'search_vector',
+      date: 'createdAt', // Ensure jobs have a createdAt field
+      salary: 'salary',
+    };
+
+    const orderByField = validSortFields[sortBy] || 'createdAt'; // Default to date
+    const order = sortOrder.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+
     const [jobs, total] = await this.jobRepository.findAndCount({
-      where: search
-        ? [{ title: Like(`%${search}%`) }, { company: Like(`%${search}%`) }]
-        : {},
+      select: ['id', 'title', 'company', 'salary', 'location', 'createdAt'], // Fetch Only required columns
+      where,
+      order: { [orderByField]: order },
       skip: (page - 1) * limit,
       take: limit,
     });
 
-    return { total, page, limit, jobs };
+    return { total, page, limit, sortBy, sortOrder, jobs };
   }
-
   async findOne(id: number) {
     const job = await this.jobRepository.findOne({ where: { id } });
     if (!job) {
