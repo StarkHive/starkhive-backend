@@ -3,6 +3,7 @@ import { Contract } from 'src/contract/entities/contract.entity';
 import { NotificationSettings } from 'src/notification-settings/entities/notification-settings.entity';
 import { Payment } from 'src/payment/entities/payment.entity';
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Index, OneToMany } from 'typeorm';
+import { Reputation } from 'src/reputation/reputation.entity';
 import { OneToOne } from 'typeorm';
 import { FreelancerProfile } from 'src/freelancer-profile/entities/freelancer-profile.entity';
 import { Post } from 'src/post/entities/post.entity';
@@ -13,6 +14,9 @@ import { Post } from 'src/post/entities/post.entity';
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
+
+  @OneToOne(() => Reputation, (reputation) => reputation.user, { cascade: true })
+  reputation: Reputation;
 
   @Column({ unique: true })
   @IsNotEmpty()

@@ -20,6 +20,7 @@ import { NotificationSettingsModule } from './notification-settings/notification
 import { FreelancerProfileModule } from './freelancer-profile/freelancer-profile.module';
 import { PostModule } from './post/post.module';
 import { PostService } from './post/post.service';
+import { ReputationModule } from './reputation/reputation.module';
 dotenv.config();
 
 @Module({
@@ -57,6 +58,7 @@ dotenv.config();
         NotificationSettingsModule,
         FreelancerProfileModule,
         PostModule,
+        ReputationModule,
     ],
     providers: [RolesGuard, PermissionGuard, PermissionService, PostService],
 })
