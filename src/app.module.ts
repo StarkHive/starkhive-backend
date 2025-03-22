@@ -1,4 +1,4 @@
-import { Module, MiddlewareConsumer } from '@nestjs/common';
+import { Module, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JobPostingsModule } from './job-postings/job-postings.module';
@@ -16,6 +16,13 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { NotificationSettingsModule } from './notification-settings/notification-settings.module';
 import { FreelancerProfileModule } from './freelancer-profile/freelancer-profile.module';
 import { PostModule } from './post/post.module';
+import { ApiUsageMiddleware } from './auth/middleware/api-usage.middleware';
+import { AuditModule } from './audit/audit.module';
+import { ContentModule } from './content/content.module';
+import { ReportingModule } from './reporting/reporting.module';
+import { AnalyticsModule } from './analytics/analytics.module';
+import { ConfigurationModule } from './configuration/configuraton.module';
+import { HealthModule } from './health/health.module';
 dotenv.config();
 
 @Module({
@@ -58,11 +65,17 @@ dotenv.config();
     NotificationSettingsModule,
     FreelancerProfileModule,
     PostModule,
+    AuditModule,
+    ConfigurationModule,
+    ContentModule,
+    ReportingModule,
+    AnalyticsModule,
+    HealthModule,
   ],
   providers: [RolesGuard, PermissionGuard, PermissionService],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(AuthMiddleware);
+    consumer.apply(AuthMiddleware,ApiUsageMiddleware).forRoutes({ path: '*', method: RequestMethod.ALL });
   }
 }

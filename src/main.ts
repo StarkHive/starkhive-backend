@@ -14,6 +14,10 @@ async function bootstrap() {
         credentials: true,
     });
 
+      
+  // Set global prefix for all routes
+  app.setGlobalPrefix('api/admin');
+
     app.useGlobalPipes(new ValidationPipe());
     
     await app.listen(3001);

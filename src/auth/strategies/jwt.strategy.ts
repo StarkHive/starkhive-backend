@@ -24,4 +24,5 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
     return { walletAddress: payload.sub };
   }
+    
 }
