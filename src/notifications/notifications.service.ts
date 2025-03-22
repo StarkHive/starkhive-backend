@@ -8,6 +8,8 @@ import { NotificationSettingsService } from '../notification-settings/notificati
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
 import { JobNotification } from './entities/job-notification.entities';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 @Injectable()
 export class NotificationsService {
@@ -15,8 +17,8 @@ export class NotificationsService {
     service: 'gmail',
     auth: { user: 'your-email@gmail.com', pass: 'your-password' },
   });
-
-  private twilioClient = Twilio('TWILIO_ACCOUNT_SID', 'TWILIO_AUTH_TOKEN');
+  
+  private twilioClient = Twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
   constructor(
     private readonly notificationSettingsService: NotificationSettingsService,

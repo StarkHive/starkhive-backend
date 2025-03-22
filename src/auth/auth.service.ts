@@ -103,6 +103,7 @@ export class AuthService {
         password: hashedPassword,
         emailTokenVerification: await generateUniqueKey(6),
         walletAddress: dto?.walletAddress,
+        username: dto?.username,
       });
 
       user.tokenExpires = new Date(Date.now() + 15 * 60 * 1000);
