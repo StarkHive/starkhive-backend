@@ -46,10 +46,10 @@ dotenv.config();
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: [
+        '.env.local',
         '.env.development',
         '.env.production',
         '.env.test',
-        '.env.local',
       ],
     }),
 
