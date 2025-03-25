@@ -7,10 +7,9 @@ export class CreateUserTable1700000000000 implements MigrationInterface {
         name: 'users',
         columns: [
           { name: 'id', type: 'uuid', isPrimary: true, generationStrategy: 'uuid', default: 'uuid_generate_v4()' },
-          { name: 'username', type: 'varchar', length: '20', isUnique: true, isNullable: true, default: null },
+          { name: 'username', type: 'varchar', length: '20', isUnique: true },
           { name: 'email', type: 'varchar', isUnique: true },
-          { name: 'password', type: 'varchar' },
-          { name: 'walletAddress', type: 'varchar', isUnique: true, isNullable: true, default: null },
+          { name: 'walletAddress', type: 'varchar', isUnique: true },
           { name: 'createdAt', type: 'timestamp', default: 'now()' },
           { name: 'updatedAt', type: 'timestamp', default: 'now()', onUpdate: 'CURRENT_TIMESTAMP' },
         ],

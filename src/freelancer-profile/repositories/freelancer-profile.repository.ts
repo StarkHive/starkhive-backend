@@ -8,7 +8,7 @@ import { CreateFreelancerProfileDto } from '../dto/create-freelancer-profile.dto
 export class FreelancerProfileRepository {
   constructor(
     @InjectRepository(FreelancerProfile)
-    private readonly freelancerProfileRepository: Repository<FreelancerProfile>,
+    private readonly freelancerProfileRepository: Repository<FreelancerProfile>
   ) {}
 
   /**
@@ -16,9 +16,7 @@ export class FreelancerProfileRepository {
    * @param payload - Data for creating a freelancer profile.
    * @returns The newly created FreelancerProfile.
    */
-  async createFreelancerProfile(
-    payload: CreateFreelancerProfileDto,
-  ): Promise<FreelancerProfile> {
+  async createFreelancerProfile(payload: CreateFreelancerProfileDto): Promise<FreelancerProfile> {
     const freelancerProfile = this.freelancerProfileRepository.create(payload);
     return this.freelancerProfileRepository.save(freelancerProfile);
   }
@@ -48,16 +46,6 @@ export class FreelancerProfileRepository {
   }
 
   /**
-   * Retrieves all freelancer profiles.
-   * @returns An array of FreelancerProfiles.
-   */
-  async findAll(): Promise<FreelancerProfile[]> {
-    return this.freelancerProfileRepository.find({
-      relations: ['user'], // Include user details for full profile context
-    });
-  }
-
-  /**
    * Updates freelancer profile skills.
    * @param id - The ID of the freelancer profile.
    * @param skills - New skills array.
@@ -66,9 +54,8 @@ export class FreelancerProfileRepository {
    */
   async updateSkills(id: string, skills: string[]): Promise<FreelancerProfile> {
     const profile = await this.findById(id);
-    if (!profile)
-      throw new NotFoundException(`Freelancer profile with ID ${id} not found`);
-
+    if (!profile) throw new NotFoundException(`Freelancer profile with ID ${id} not found`);
+    
     profile.skills = skills;
     return this.freelancerProfileRepository.save(profile);
   }
@@ -80,14 +67,10 @@ export class FreelancerProfileRepository {
    * @returns The updated FreelancerProfile.
    * @throws NotFoundException if the profile is not found.
    */
-  async updateExperience(
-    id: string,
-    experience: string,
-  ): Promise<FreelancerProfile> {
+  async updateExperience(id: string, experience: string): Promise<FreelancerProfile> {
     const profile = await this.findById(id);
-    if (!profile)
-      throw new NotFoundException(`Freelancer profile with ID ${id} not found`);
-
+    if (!profile) throw new NotFoundException(`Freelancer profile with ID ${id} not found`);
+    
     profile.experience = experience;
     return this.freelancerProfileRepository.save(profile);
   }
@@ -99,9 +82,8 @@ export class FreelancerProfileRepository {
    */
   async deleteProfile(id: string): Promise<void> {
     const profile = await this.findById(id);
-    if (!profile)
-      throw new NotFoundException(`Freelancer profile with ID ${id} not found`);
-
+    if (!profile) throw new NotFoundException(`Freelancer profile with ID ${id} not found`);
+    
     await this.freelancerProfileRepository.remove(profile);
   }
 }

@@ -2,8 +2,6 @@ import { Controller, Post, Body, UnauthorizedException, Get, UseGuards } from '@
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { WalletAddress } from './decorators/wallet-address.decorator';
-import { CreateUserDto } from '@src/user/dto/create-user.dto';
-import { LoginDto } from './dtos/auth.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -44,15 +42,5 @@ export class AuthController {
             message: 'You are authenticated!',
             walletAddress
         };
-    }
-
-    @Post('register')
-    async register(@Body() dto: CreateUserDto) {
-        return this.authService.registerUser(dto);
-    }
-
-    @Post('login')
-    async login(@Body() dto: LoginDto) {
-        return this.authService.login(dto);
     }
 }

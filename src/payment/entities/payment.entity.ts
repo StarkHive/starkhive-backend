@@ -1,11 +1,4 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  CreateDateColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { Contract } from '../../contract/entities/contract.entity';
 import { User } from '../../user/entities/user.entity';
 
@@ -41,16 +34,10 @@ export class Payment {
   @Column({ type: 'varchar', length: 255 })
   email: string;
 
-  @ManyToOne(() => Contract, (contract) => contract.payments, {
-    nullable: false,
-    onDelete: 'CASCADE',
-  })
+  @ManyToOne(() => Contract, (contract) => contract.payments, { nullable: false, onDelete: 'CASCADE' })
   contract: Contract;
 
-  @ManyToOne(() => User, (user) => user.payments, {
-    nullable: false,
-    onDelete: 'CASCADE',
-  })
+  @ManyToOne(() => User, (user) => user.payments, { nullable: false, onDelete: 'CASCADE' })
   user: User;
 
   @Column({ type: 'varchar', length: 255, nullable: true })

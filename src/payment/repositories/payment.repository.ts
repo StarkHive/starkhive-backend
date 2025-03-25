@@ -4,7 +4,7 @@ import { Payment } from '../entities/payment.entity';
 
 @Injectable()
 export class PaymentRepository extends Repository<Payment> {
-  constructor(dataSource: DataSource) {
+  constructor(private dataSource: DataSource) {
     super(Payment, dataSource.createEntityManager());
   }
 
@@ -12,16 +12,13 @@ export class PaymentRepository extends Repository<Payment> {
     return this.findOne({ where: { transactionReference: reference } });
   }
 
-  async findByContractAndUser(
-    contractId: string,
-    userId: string,
-  ): Promise<Payment[]> {
+  async findByContractAndUser(contractId: string, userId: string): Promise<Payment[]> {
     return this.find({
       where: {
         contract: { id: contractId },
-        user: { id: userId },
+        user: { id: userId }
       },
-      relations: ['contract', 'user'],
+      relations: ['contract', 'user']
     });
   }
 }

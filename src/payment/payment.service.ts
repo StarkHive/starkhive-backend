@@ -1,184 +1,193 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Injectable, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import axios from 'axios';
-import { Payment } from './entities/payment.entity';
 import { CreatePaymentDto } from './dto/create-payment.dto';
+import * as crypto from 'crypto';
+import { ConfigService } from '@nestjs/config';
+import { TransactionLogService } from './transaction-log.service';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
 import { GenerateInvoiceDto } from './dto/generate-invoice.dto';
 
 @Injectable()
 export class PaymentService {
-  private readonly secretKey = process.env.PAYSTACK_SECRET_KEY;
-
+  private readonly logger = new Logger(PaymentService.name);
+  
   constructor(
-    @InjectRepository(Payment)
-    private readonly paymentRepository: Repository<Payment>,
+    private configService: ConfigService,
+    private transactionLogService: TransactionLogService,
   ) {}
 
   async initializePayment(createPaymentDto: CreatePaymentDto) {
     try {
-      // Fetch the user entity
-      const user = await this.paymentRepository.findOne({
-        where: { id: createPaymentDto.userId },
+      const secretKey = this.configService.get<string>('PAYSTACK_SECRET_KEY');
+      const callbackUrl = this.configService.get<string>('CALLBACK_URL', 'https://yourdomain.com/payment/callback');
+      
+      // Log the payment initialization attempt
+      await this.transactionLogService.logTransaction({
+        email: createPaymentDto.email,
+        amount: createPaymentDto.amount,
+        type: 'initialize',
+        status: 'pending',
+        metadata: { user_id: createPaymentDto.userId, purpose: createPaymentDto.purpose }
       });
-
-      if (!user) {
-        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-      }
-
-      // Initialize payment with Paystack API
-      const response = await axios.post<{
-        status: boolean;
-        data: { reference: string };
-      }>(
+      
+      const response = await axios.post(
         'https://api.paystack.co/transaction/initialize',
         {
           email: createPaymentDto.email,
-          amount: createPaymentDto.amount * 100, // Convert to kobo
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${this.secretKey}`,
+          amount: createPaymentDto.amount * 100, // Convert to kobo/cents
+          callback_url: callbackUrl,
+          metadata: {
+            user_id: createPaymentDto.userId,
+            purpose: createPaymentDto.purpose,
           },
         },
+        {
+          headers: { Authorization: `Bearer ${secretKey}` },
+        },
       );
-
+      
       if (response.data.status) {
-        // Create and save the payment object with full user
-        const payment = this.paymentRepository.create({
-          user, // Full User object
-          amount: createPaymentDto.amount,
-          transactionReference: response.data.data.reference, // Use the correct field name
-          status: 'pending',
+        // Update the transaction log with the reference
+        await this.transactionLogService.updateTransaction({
+          email: createPaymentDto.email,
+          reference: response.data.data.reference,
+          status: 'initialized',
         });
-
-        await this.paymentRepository.save(payment);
-        return response.data;
-      } else {
-        throw new HttpException(
-          'Payment initialization failed',
-          HttpStatus.BAD_REQUEST,
-        );
       }
-    } catch (error: any) {
-      throw new HttpException(
-        error.response?.data || 'Error initializing payment',
-        HttpStatus.BAD_REQUEST,
-      );
+      
+      return response.data;
+    } catch (error) {
+      this.logger.error(`Payment initialization failed: ${error.message}`, error.stack);
+      await this.transactionLogService.logTransaction({
+        email: createPaymentDto.email,
+        amount: createPaymentDto.amount,
+        type: 'initialize',
+        status: 'failed',
+        error: error.message,
+      });
+      throw new HttpException('Payment initialization failed', HttpStatus.BAD_REQUEST);
     }
   }
 
   async verifyPayment(reference: string) {
     try {
-      const response = await axios.get<{ status: boolean; data: any }>(
-        `https://api.paystack.co/transaction/verify/${reference}`,
-        {
-          headers: {
-            Authorization: `Bearer ${this.secretKey}`,
-          },
-        },
-      );
-
+      const secretKey = this.configService.get<string>('PAYSTACK_SECRET_KEY');
+      const response = await axios.get(`https://api.paystack.co/transaction/verify/${reference}`, {
+        headers: { Authorization: `Bearer ${secretKey}` },
+      });
+      
       if (response.data.status) {
-        const payment = await this.paymentRepository.findOne({
-          where: { transactionReference: reference }, // Use the correct column name
+        const transaction = response.data.data;
+        
+        // Update transaction log with verification result
+        await this.transactionLogService.updateTransaction({
+          reference,
+          status: transaction.status,
+          amount: transaction.amount / 100,
+          paymentDate: new Date(transaction.paid_at),
         });
-
-        if (!payment) {
-          throw new HttpException(
-            'Payment record not found',
-            HttpStatus.NOT_FOUND,
-          );
-        }
-
-        payment.status = response.data.data.status;
-        await this.paymentRepository.save(payment);
-
+        
         return response.data;
-      } else {
-        throw new HttpException(
-          'Payment verification failed',
-          HttpStatus.BAD_REQUEST,
-        );
       }
-    } catch (error: any) {
-      throw new HttpException(
-        error.response?.data || 'Error verifying payment',
-        HttpStatus.BAD_REQUEST,
-      );
+      
+      return response.data;
+    } catch (error) {
+      this.logger.error(`Payment verification failed: ${error.message}`, error.stack);
+      await this.transactionLogService.updateTransaction({
+        reference,
+        status: 'verification_failed',
+        error: error.message,
+      });
+      throw new HttpException('Payment verification failed', HttpStatus.BAD_REQUEST);
     }
-  }
-
-  async getPaymentsByContract(contractId: string, userId?: string) {
-    const query = this.paymentRepository
-      .createQueryBuilder('payment')
-      .where('payment.contractId = :contractId', { contractId });
-
-    if (userId) {
-      query.andWhere('payment.userId = :userId', { userId });
-    }
-
-    return query.getMany();
-  }
-
-  async getPaymentByReference(reference: string) {
-    const payment = await this.paymentRepository.findOne({
-      where: { transactionReference: reference }, // Use the correct column name
-    });
-
-    if (!payment) {
-      throw new HttpException('Payment not found', HttpStatus.NOT_FOUND);
-    }
-
-    return payment;
-  }
-
-  async findAll() {
-    return this.paymentRepository.find();
-  }
-
-  async findOne(id: string) {
-    const payment = await this.paymentRepository.findOne({ where: { id } });
-
-    if (!payment) {
-      throw new HttpException('Payment not found', HttpStatus.NOT_FOUND);
-    }
-
-    return payment;
-  }
-
-  async update(id: string, updatePaymentDto: UpdatePaymentDto) {
-    const payment = await this.paymentRepository.findOne({ where: { id } });
-
-    if (!payment) {
-      throw new HttpException('Payment not found', HttpStatus.NOT_FOUND);
-    }
-
-    Object.assign(payment, updatePaymentDto);
-    return this.paymentRepository.save(payment);
-  }
-
-  async remove(id: string) {
-    const result = await this.paymentRepository.delete(id);
-
-    if (result.affected === 0) {
-      throw new HttpException('Payment not found', HttpStatus.NOT_FOUND);
-    }
-
-    return { message: 'Payment deleted successfully' };
   }
 
   async handleWebhook(signature: string, payload: any) {
-    // Implement your webhook logic here
-    console.log('Webhook received', signature, payload);
-    return { message: 'Webhook processed successfully' };
+    try {
+      const secretKey = this.configService.get<string>('PAYSTACK_SECRET_KEY');
+      const hash = crypto.createHmac('sha512', secretKey).update(JSON.stringify(payload)).digest('hex');
+      
+      if (hash !== signature) {
+        this.logger.warn('Invalid webhook signature received');
+        throw new HttpException('Invalid webhook signature', HttpStatus.FORBIDDEN);
+      }
+      
+      // Process different event types
+      if (payload.event === 'charge.success') {
+        await this.processSuccessfulPayment(payload.data);
+      } else if (payload.event === 'charge.failed') {
+        await this.processFailedPayment(payload.data);
+      }
+      
+      // Log the webhook event
+      await this.transactionLogService.logWebhook({
+        event: payload.event,
+        reference: payload.data?.reference || 'unknown',
+        data: payload,
+      });
+      
+      return { message: 'Webhook received successfully', data: payload };
+    } catch (error) {
+      this.logger.error(`Webhook processing failed: ${error.message}`, error.stack);
+      throw new HttpException('Webhook processing failed', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   async handleCallback(reference: string) {
-    // Implement your callback handling logic
-    console.log('Callback received for reference:', reference);
-    return { status: 'success' }; // or 'failed' based on verification
+    try {
+      // Verify the payment status
+      const verificationResult = await this.verifyPayment(reference);
+      
+      // Log the callback
+      await this.transactionLogService.logCallback({
+        reference,
+        status: verificationResult.data.status,
+      });
+      
+      return {
+        status: verificationResult.data.status === 'success' ? 'success' : 'failure',
+        data: verificationResult.data,
+      };
+    } catch (error) {
+      this.logger.error(`Callback processing failed: ${error.message}`, error.stack);
+      await this.transactionLogService.logCallback({
+        reference,
+        status: 'failed',
+        error: error.message,
+      });
+      return { status: 'failure', error: error.message };
+    }
+  }
+
+  private async processSuccessfulPayment(data: any) {
+    // Update transaction status in database
+    await this.transactionLogService.updateTransaction({
+      reference: data.reference,
+      status: 'success',
+      amount: data.amount / 100,
+      paymentDate: new Date(),
+      metadata: data.metadata,
+    });
+    
+    // Additional business logic based on payment purpose
+    if (data.metadata?.purpose === 'contract') {
+      // Update contract status, send notifications, etc.
+    } else if (data.metadata?.purpose === 'job') {
+      // Update job status, notify relevant parties, etc.
+    }
+    
+    this.logger.log(`Payment successful for reference: ${data.reference}`);
+  }
+
+  private async processFailedPayment(data: any) {
+    // Update transaction status in database
+    await this.transactionLogService.updateTransaction({
+      reference: data.reference,
+      status: 'failed',
+      failureReason: data.gateway_response || 'Unknown reason',
+    });
+    
+    this.logger.log(`Payment failed for reference: ${data.reference}`);
   }
 
   async generateInvoice(generateInvoiceDto: GenerateInvoiceDto): Promise<Payment> {
@@ -199,3 +208,4 @@ export class PaymentService {
     return this.paymentRepository.save(payment);
   }
 }
+

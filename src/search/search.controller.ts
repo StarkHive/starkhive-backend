@@ -1,5 +1,6 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { SearchService } from './search.service';
+import { SearchDto } from './search.dto';
 import { SearchJobsDto } from './dto/search-jobs.dto';
 import { SearchFreelancersDto } from './dto/search-freelancers.dto';
 import { SearchCompaniesDto } from './dto/search-companies.dto';
@@ -10,6 +11,11 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 export class SearchController {
   constructor(private readonly searchService: SearchService) {}
 
+  @Get('messages')
+  async searchMessages(@Query() searchDto: SearchDto) {
+    return this.searchService.searchMessages(searchDto);
+  }
+}
   @Get('jobs')
   @ApiOperation({ summary: 'Search jobs with advanced filtering and sorting' })
   @ApiResponse({ 
