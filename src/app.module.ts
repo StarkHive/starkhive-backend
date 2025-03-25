@@ -96,8 +96,8 @@ dotenv.config();
     ProjectModule,
     TimeTrackingModule,
     SearchModule,
-    MessagingModule
-    ErrorTrackingModule
+    MessagingModule,
+    ErrorTrackingModule,
   ],
   providers: [
     RolesGuard,
