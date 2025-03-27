@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { FreelancerProfileRepository } from './repositories/freelancer-profile.repository';
 import { CreateFreelancerProfileDto } from './dto/create-freelancer-profile.dto';
+import { SearchFreelancerProfileDto } from './dto/search-freelancer-profile.dto';
 
 @Injectable()
 export class FreelancerProfileService {
@@ -38,5 +39,10 @@ export class FreelancerProfileService {
   // Delete profile
   async deleteProfile(id: string) {
     return this.freelancerProfileRepository.deleteProfile(id);
+  }
+
+  // Search profiles
+  async searchProfiles(searchParams: SearchFreelancerProfileDto) {
+    return this.freelancerProfileRepository.searchProfiles(searchParams);
   }
 }

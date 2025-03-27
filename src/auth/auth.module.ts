@@ -6,6 +6,7 @@ import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { UtilService } from './utils/utils.function';
 import { UserModule } from '@src/user/user.module';
+import { MfaModule } from './mfa/mfa.module';
 
 @Module({
     imports: [
@@ -17,7 +18,8 @@ import { UserModule } from '@src/user/user.module';
             }),
             inject: [ConfigService],
         }),
-        UserModule
+        UserModule,
+        MfaModule
     ],
     providers: [AuthService, JwtStrategy, UtilService],
     controllers: [AuthController],

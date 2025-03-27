@@ -1,6 +1,13 @@
-
 // 8. Create Report Entity (src/reporting/entities/report.entity.ts)
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { ReportType } from '../enums/report-type.enum';
 import { User } from '@src/user/entities/user.entity';
 import { ReportStatus } from '../enums/report-status.enums';
@@ -12,14 +19,14 @@ export class Report {
 
   @Column({
     type: 'enum',
-    enum: ReportType
+    enum: ReportType,
   })
   type: ReportType;
 
   @Column({
     type: 'enum',
     enum: ReportStatus,
-    default: ReportStatus.PENDING
+    default: ReportStatus.PENDING,
   })
   status: ReportStatus;
 

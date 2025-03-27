@@ -10,28 +10,38 @@ export class PostRepository {
     private readonly repository: Repository<Post>,
   ) {}
 
+  // Direct pass-through methods to match TypeORM Repository methods
+  findOne(options: any) {
+    return this.repository.findOne(options);
+  }
+
+  create(data: Partial<Post>) {
+    return this.repository.create(data);
+  }
+
+  save(post: Post | Partial<Post>) {
+    return this.repository.save(post);
+  }
+
+  delete(id: string) {
+    return this.repository.delete(id);
+  }
+
+  increment(options: any, columnName: string, value: number) {
+    return this.repository.increment(options, columnName, value);
+  }
+
+  // Methods that were previously in the repository
   async findById(id: string): Promise<Post | null> {
     return this.repository.findOne({
       where: { id },
       relations: ['author', 'images', 'hashtags'],
     });
   }
-  async save(post: Post): Promise<Post> {
-    return this.repository.save(post);
-  }
-
-  async create(post: Partial<Post>): Promise<Post> {
-    const newPost = this.repository.create(post);
-    return this.repository.save(newPost);
-  }
 
   async update(id: string, post: Partial<Post>): Promise<Post | null> {
     await this.repository.update(id, post);
     return this.findById(id);
-  }
-
-  async delete(id: string): Promise<void> {
-    await this.repository.delete(id);
   }
 
   async incrementReactionCount(id: string): Promise<void> {
@@ -75,6 +85,7 @@ export class PostRepository {
     return queryBuilder.getManyAndCount();
   }
 
+  // Additional utility methods from previous implementation
   async getTrendingHashtags(limit = 10): Promise<
     {
       name: string;
@@ -94,5 +105,21 @@ export class PostRepository {
       .limit(limit);
 
     return queryBuilder.getRawMany();
+  }
+
+  async findOrCreate(
+    conditions: Partial<Post>,
+    createData: Partial<Post>,
+  ): Promise<Post> {
+    let post = await this.repository.findOne({
+      where: conditions,
+    });
+
+    if (!post) {
+      post = this.repository.create(createData);
+      return this.repository.save(post);
+    }
+
+    return post;
   }
 }

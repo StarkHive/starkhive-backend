@@ -1,6 +1,3 @@
-
-
-// 11. Create SystemMetric Entity (src/analytics/entities/system-metric.entity.ts)
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
 import { MetricType } from '../enums/metric-types.enum';
 

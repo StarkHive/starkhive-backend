@@ -1,32 +1,28 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   Injectable,
   NotFoundException,
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import type { Repository } from 'typeorm';
 import { PostReaction } from './entities/post-reaction.entity';
-import { PostImage } from './entities/post-image.entity';
 import type { UserService } from 'src/user/user.service';
 import type { CreateReactionDto } from './dto/create-reaction.dto';
 import type { CreatePostDto } from './dto/create-post.dto';
 import type { UpdatePostDto } from './dto/update-post.dto';
 import { PostRepository } from './repositories/post.repository';
-import { HashtagRepository } from './repositories/hashtag.repository';
 import { type Post, PostPrivacy } from './entities/post.entity';
+import { PostReactionRepository } from './repositories/post-reaction.repository';
+import { PostImageRepository } from './repositories/post-image.repository';
+import { HashtagRepository } from './repositories/hashtag.repository';
 
 @Injectable()
 export class PostService {
   constructor(
     private readonly postRepository: PostRepository,
+    private readonly postImageRepository: PostImageRepository,
+    private readonly postReactionRepository: PostReactionRepository,
     private readonly hashtagRepository: HashtagRepository,
     private readonly usersService: UserService,
-    @InjectRepository(PostImage)
-    private readonly postImageRepository: Repository<PostImage>,
-    @InjectRepository(PostReaction)
-    private readonly postReactionRepository: Repository<PostReaction>,
   ) {}
 
   async createPost(
@@ -34,26 +30,30 @@ export class PostService {
     createPostDto: CreatePostDto,
   ): Promise<Post> {
     // Extract hashtags from content
-    const extractedHashtags = this.extractHashtags(createPostDto.content);
-    const allHashtags = [
-      ...new Set([...(createPostDto.hashtags || []), ...extractedHashtags]),
+    const extracteds = this.extractHashtags(createPostDto.content);
+    const alls = [
+      ...new Set([...(createPostDto.hashtags || []), ...extracteds]),
     ];
 
     // Get or create hashtags
-    const hashtags = await this.hashtagRepository.findOrCreate(allHashtags);
-
-    // Extract metadata
-    // const metadata = {
-    //   links: createPostDto.links || [],
-    //   mentions: this.extractMentions(createPostDto.content),
-    // };
+    const hashtags = [];
+    for (const tag of alls) {
+      let tagRecord = await this.hashtagRepository.findOne({
+        where: { name: tag },
+      });
+      if (!tagRecord) {
+        tagRecord = this.hashtagRepository.create({ name: tag });
+        await this.hashtagRepository.save(tagRecord);
+      }
+      hashtags.push(tagRecord);
+    }
 
     // Check if repost
     let originalPost = null;
     if (createPostDto.originalPostId) {
-      originalPost = await this.postRepository.findById(
-        createPostDto.originalPostId,
-      );
+      originalPost = await this.postRepository.findOne({
+        where: { id: createPostDto.originalPostId },
+      });
       if (!originalPost) {
         throw new NotFoundException('Original post not found');
       }
@@ -75,17 +75,23 @@ export class PostService {
       }
 
       // Increment repost count on original post
-      await this.postRepository.incrementRepostCount(originalPost.id);
+      await this.postRepository.increment(
+        { id: originalPost.id },
+        'repostCount',
+        1,
+      );
     }
 
     // Create post
-    const post = await this.postRepository.create({
+    const postToSave = this.postRepository.create({
       content: createPostDto.content,
       privacy: createPostDto.privacy,
       authorId: userId,
       hashtags,
       originalPostId: createPostDto.originalPostId,
     });
+
+    const post = await this.postRepository.save(postToSave);
 
     // Create post images
     if (createPostDto.images && createPostDto.images.length > 0) {
@@ -111,7 +117,10 @@ export class PostService {
     postId: string,
     updatePostDto: UpdatePostDto,
   ): Promise<Post> {
-    const post = await this.postRepository.findById(postId);
+    const post = await this.postRepository.findOne({
+      where: { id: postId },
+      relations: ['hashtags', 'images'],
+    });
 
     if (!post) {
       throw new NotFoundException('Post not found');
@@ -130,11 +139,21 @@ export class PostService {
       post.content = updatePostDto.content;
 
       // Update hashtags
-      const extractedHashtags = this.extractHashtags(updatePostDto.content);
-      const allHashtags = [
-        ...new Set([...(updatePostDto.hashtags || []), ...extractedHashtags]),
+      const extracteds = this.extractHashtags(updatePostDto.content);
+      const alls = [
+        ...new Set([...(updatePostDto.hashtags || []), ...extracteds]),
       ];
-      post.hashtags = await this.hashtagRepository.findOrCreate(allHashtags);
+      post.hashtags = [];
+      for (const tag of alls) {
+        let tagRecord = await this.hashtagRepository.findOne({
+          where: { name: tag },
+        });
+        if (!tagRecord) {
+          tagRecord = this.hashtagRepository.create({ name: tag });
+          await this.hashtagRepository.save(tagRecord);
+        }
+        post.hashtags.push(tagRecord);
+      }
 
       // Update metadata
       post.metadata = {
@@ -147,7 +166,7 @@ export class PostService {
       post.privacy = updatePostDto.privacy;
     }
 
-    // ✅ Use `.save()` instead of `.update()`
+    // Save updated post
     const updatedPost = await this.postRepository.save(post);
 
     // Handle image updates
@@ -168,7 +187,7 @@ export class PostService {
 
       if (images.length > 0) {
         await this.postImageRepository.save(images);
-        updatedPost.images = images; // ✅ `updatedPost` is now guaranteed to exist
+        updatedPost.images = images;
       }
     }
 
@@ -297,38 +316,26 @@ export class PostService {
       return this.postReactionRepository.save(otherReaction);
     }
 
-    // Create a new reaction
+    // Create new reaction
     const reaction = this.postReactionRepository.create({
-      postId,
       userId,
+      postId,
       type: reactionDto.type,
     });
 
+    await this.postReactionRepository.save(reaction);
     await this.postRepository.incrementReactionCount(postId);
-    return this.postReactionRepository.save(reaction);
-  }
 
-  async getTrendingHashtags(limit = 10): Promise<any[]> {
-    return this.hashtagRepository.getTrending(limit);
+    return reaction;
   }
 
   private extractHashtags(content: string): string[] {
-    // Match hashtag pattern: #word
-    const hashtagRegex = /#(\w+)/g;
-    const matches = content.match(hashtagRegex) || [];
-
-    // Remove the # prefix and return unique values
-    return [...new Set(matches.map((tag) => tag.substring(1).toLowerCase()))];
+    const regex = /#[a-zA-Z0-9_]+/g;
+    return (content.match(regex) || []).map((hashtag) => hashtag.slice(1));
   }
 
   private extractMentions(content: string): string[] {
-    // Match mention pattern: @username
-    const mentionRegex = /@(\w+)/g;
-    const matches = content.match(mentionRegex) || [];
-
-    // Remove the @ prefix and return unique values
-    return [
-      ...new Set(matches.map((mention) => mention.substring(1).toLowerCase())),
-    ];
+    const regex = /@[a-zA-Z0-9_]+/g;
+    return (content.match(regex) || []).map((mention) => mention.slice(1));
   }
 }

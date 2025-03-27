@@ -1,8 +1,9 @@
 /* eslint-disable prettier/prettier */
 export enum Role {
   ADMIN = 'admin',
-  COMPANY = 'company',
+  USER = 'user',
   FREELANCER = 'freelancer',
+  COMPANY = 'company',
 }
 
 export enum Permission {

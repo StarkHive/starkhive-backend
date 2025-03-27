@@ -6,7 +6,7 @@ import { CreateMetricDto } from './dto/create-metric.dto';
 import { MetricType } from './enums/metric-types.enum';
 
 interface WhereClause {
-  createdAt?: Date | FindOperator<Date>; // Allow FindOperator<Date>
+  createdAt?: Date | FindOperator<Date>;
 }
 
 @Injectable()
@@ -23,26 +23,23 @@ export class AnalyticsService {
 
   async getMetricsByType(type: MetricType, startDate?: Date, endDate?: Date) {
     const query: any = { type };
-    
+
     if (startDate && endDate) {
-      query.createdAt = Between(startDate, endDate); // This is correct
+      query.createdAt = Between(startDate, endDate);
     }
-    
     const metrics = await this.metricRepository.find({
       where: query,
       order: { createdAt: 'ASC' },
     });
-    
     return metrics;
   }
 
   async getMetricsSummary(startDate?: Date, endDate?: Date) {
-    const whereClause: WhereClause = {}; // Use the defined type
-    
+    const whereClause: WhereClause = {};
+
     if (startDate && endDate) {
-      whereClause.createdAt = Between(startDate, endDate); // This should now work
+      whereClause.createdAt = Between(startDate, endDate);
     }
-    
     const summaryData = await this.metricRepository
       .createQueryBuilder('metric')
       .select('metric.type', 'type')
@@ -53,7 +50,6 @@ export class AnalyticsService {
       .where(whereClause)
       .groupBy('metric.type')
       .getRawMany();
-    
     return summaryData;
   }
 
@@ -61,7 +57,6 @@ export class AnalyticsService {
     const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
-    
     const dailyData = await this.metricRepository
       .createQueryBuilder('metric')
       .select('DATE(metric.createdAt)', 'date')
@@ -72,7 +67,8 @@ export class AnalyticsService {
       .groupBy('DATE(metric.createdAt)')
       .orderBy('date', 'ASC')
       .getRawMany();
-    
+
     return dailyData;
   }
 }
+

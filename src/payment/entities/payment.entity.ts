@@ -56,6 +56,9 @@ export class Payment {
   @Column({ type: 'varchar', length: 255, nullable: true })
   transactionHash: string;
 
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  timeEntryId: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

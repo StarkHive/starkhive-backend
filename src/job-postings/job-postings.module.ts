@@ -9,6 +9,7 @@ import { NotificationsModule } from '@src/notifications/notifications.module';
   imports: [NotificationsModule, TypeOrmModule.forFeature([JobPosting])],
   controllers: [JobPostingsController],
   providers: [JobPostingsService],
-  exports: [JobPostingsService], // Make service available for other modules to import and use.
+
+  exports: [JobPostingsService],
 })
 export class JobPostingsModule {}

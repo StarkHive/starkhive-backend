@@ -23,16 +23,23 @@ import {
 import { FreelancerProfile } from 'src/freelancer-profile/entities/freelancer-profile.entity';
 import { Post } from 'src/post/entities/post.entity';
 import { AuditLog } from '@src/audit/entitites/audit-log.entity';
-import { Report } from '@src/reporting/entities/report.entity';
 import { Content } from '@src/content/entities/content.entity';
 import { Connection } from '@src/connection/entities/connection.entity';
 import { ConnectionNotification } from '@src/notifications/entities/connection-notification.entity';
+import { UserSkill } from '../../skills/entities/skill.entity';
+import { Reputation } from '@src/reputation/Reputation.entity';
+import { Report } from '@src/reports/report.entity';
 
 @Entity('users')
 @Index(['username', 'email'])
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
+
+  @OneToOne(() => Reputation, (reputation) => reputation.user, {
+    cascade: true,
+  })
+  reputation: Reputation;
 
   @Column({ unique: true, nullable: true })
   @Length(3, 20)
@@ -81,12 +88,24 @@ export class User {
   @UpdateDateColumn()
   updatedAt?: Date;
 
+  @OneToMany(() => Content, (content) => content.creator) // Ensure this matches the Content relationship
+  content: Content[];
+
+  @OneToMany(() => UserSkill, (userSkill) => userSkill.user)
+  skills: UserSkill[];
+
   @OneToOne(
     () => FreelancerProfile,
     (freelancerProfile) => freelancerProfile.user,
     { cascade: true },
   )
-  freelancerProfile?: FreelancerProfile;
+  freelancerProfile: FreelancerProfile;
+
+  @OneToMany(() => AuditLog, (auditLog) => auditLog.user)
+  auditLogs: AuditLog[];
+
+  @Column({ nullable: true })
+  connectionPrivacy?: string;
 
   @OneToMany(() => Connection, (connection) => connection.requester)
   sentConnections: Connection[];
@@ -103,15 +122,12 @@ export class User {
   )
   notifications: Notification[];
 
-  @Column({ default: 'public' })
-  connectionPrivacy: string;
+  @Column({ default: false })
+  mfaEnabled: boolean;
 
-  @OneToMany(() => AuditLog, (auditLog) => auditLog.user)
-  auditLogs: AuditLog[];
+  @Column({ type: 'varchar', nullable: true })
+  mfaSecret: string | null;
 
   @OneToMany(() => Report, (report) => report.reporter)
   reports: Report[];
-
-  @OneToMany(() => Content, (content) => content.creator) // Ensure this matches the Content relationship
-  content: Content[];
 }

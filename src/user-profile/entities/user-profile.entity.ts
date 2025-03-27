@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import { Endorsement } from '../../endorsement/entities/endorsement.entity';
 
 @Entity()
 export class UserProfile {
@@ -28,4 +29,11 @@ export class UserProfile {
 
   @Column({ default: true })
   isActive: boolean;
+
+  
+  @OneToMany(() => Endorsement, (endorsement) => endorsement.endorser)
+  givenEndorsements: Endorsement[]; //this tracks endorsements given by the user
+
+  @OneToMany(() => Endorsement, (endorsement) => endorsement.endorsedProfile)
+  receivedEndorsements: Endorsement[]; //this tracks endorsements received by the user.
 }

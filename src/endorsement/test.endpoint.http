@@ -1,0 +1,39 @@
+
+#  createEndorsement
+POST http://localhost:3001/endorsements
+Content-Type: application/json
+
+{
+  "endorserId": 1,
+  "endorsedProfileId": 2,
+  "skill": "NestJS"
+}
+
+
+//  removeEndorsement
+
+DELETE http://localhost:3001/endorsements
+Content-Type: application/json
+
+{
+  "endorserId": 1,
+  "endorsedProfileId": 2,
+  "skill": "NestJS"
+}
+
+
+#  getEndorsementCountForProfile
+GET http://localhost:3001/endorsements/2/count
+
+
+# Get Endorsements with Sorting (by skill)
+GET http://localhost:3001/endorsements/2?sortBy=skill&order=ASC
+
+
+#  Get Endorsements with Sorting (by date)
+GET http://localhost:3001/endorsements/2?sortBy=date&order=DESC
+
+
+
+
+

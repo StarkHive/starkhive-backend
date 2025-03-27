@@ -1,13 +1,15 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import axios from 'axios';
 import { Payment } from './entities/payment.entity';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
+import { GenerateInvoiceDto } from './dto/generate-invoice.dto';
 
 @Injectable()
 export class PaymentService {
+  private readonly logger = new Logger(PaymentService.name);
   private readonly secretKey = process.env.PAYSTACK_SECRET_KEY;
 
   constructor(
@@ -15,22 +17,33 @@ export class PaymentService {
     private readonly paymentRepository: Repository<Payment>,
   ) {}
 
+  async getPaymentsByContract(contractId: string, userId?: string) {
+    const query = this.paymentRepository
+      .createQueryBuilder('payment')
+      .where('payment.contractId = :contractId', { contractId });
+
+    if (userId) {
+      query.andWhere('payment.userId = :userId', { userId });
+    }
+
+    return query.getMany();
+  }
+
+  async getPaymentByReference(reference: string) {
+    const payment = await this.paymentRepository.findOne({
+      where: { transactionReference: reference },
+    });
+
+    if (!payment) {
+      throw new HttpException('Payment not found', HttpStatus.NOT_FOUND);
+    }
+
+    return payment;
+  }
+
   async initializePayment(createPaymentDto: CreatePaymentDto) {
     try {
-      // Fetch the user entity
-      const user = await this.paymentRepository.findOne({
-        where: { id: createPaymentDto.userId },
-      });
-
-      if (!user) {
-        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-      }
-
-      // Initialize payment with Paystack API
-      const response = await axios.post<{
-        status: boolean;
-        data: { reference: string };
-      }>(
+      const response : any  = await axios.post(
         'https://api.paystack.co/transaction/initialize',
         {
           email: createPaymentDto.email,
@@ -44,11 +57,9 @@ export class PaymentService {
       );
 
       if (response.data.status) {
-        // Create and save the payment object with full user
         const payment = this.paymentRepository.create({
-          user, // Full User object
           amount: createPaymentDto.amount,
-          transactionReference: response.data.data.reference, // Use the correct field name
+          transactionReference: response.data.data.reference,
           status: 'pending',
         });
 
@@ -61,6 +72,7 @@ export class PaymentService {
         );
       }
     } catch (error: any) {
+      this.logger.error(`Payment initialization failed: ${error.message}`);
       throw new HttpException(
         error.response?.data || 'Error initializing payment',
         HttpStatus.BAD_REQUEST,
@@ -70,7 +82,7 @@ export class PaymentService {
 
   async verifyPayment(reference: string) {
     try {
-      const response = await axios.get<{ status: boolean; data: any }>(
+      const response: any = await axios.get(
         `https://api.paystack.co/transaction/verify/${reference}`,
         {
           headers: {
@@ -81,7 +93,7 @@ export class PaymentService {
 
       if (response.data.status) {
         const payment = await this.paymentRepository.findOne({
-          where: { transactionReference: reference }, // Use the correct column name
+          where: { transactionReference: reference },
         });
 
         if (!payment) {
@@ -102,35 +114,12 @@ export class PaymentService {
         );
       }
     } catch (error: any) {
+      this.logger.error(`Payment verification failed: ${error.message}`);
       throw new HttpException(
         error.response?.data || 'Error verifying payment',
         HttpStatus.BAD_REQUEST,
       );
     }
-  }
-
-  async getPaymentsByContract(contractId: string, userId?: string) {
-    const query = this.paymentRepository
-      .createQueryBuilder('payment')
-      .where('payment.contractId = :contractId', { contractId });
-
-    if (userId) {
-      query.andWhere('payment.userId = :userId', { userId });
-    }
-
-    return query.getMany();
-  }
-
-  async getPaymentByReference(reference: string) {
-    const payment = await this.paymentRepository.findOne({
-      where: { transactionReference: reference }, // Use the correct column name
-    });
-
-    if (!payment) {
-      throw new HttpException('Payment not found', HttpStatus.NOT_FOUND);
-    }
-
-    return payment;
   }
 
   async findAll() {
@@ -169,14 +158,30 @@ export class PaymentService {
   }
 
   async handleWebhook(signature: string, payload: any) {
-    // Implement your webhook logic here
-    console.log('Webhook received', signature, payload);
+    this.logger.log('Webhook received', { signature, payload });
     return { message: 'Webhook processed successfully' };
   }
 
   async handleCallback(reference: string) {
-    // Implement your callback handling logic
-    console.log('Callback received for reference:', reference);
-    return { status: 'success' }; // or 'failed' based on verification
+    this.logger.log(`Callback received for reference: ${reference}`);
+    return { status: 'success' };
+  }
+
+  async generateInvoice(generateInvoiceDto: GenerateInvoiceDto): Promise<Payment> {
+    const payment = this.paymentRepository.create({
+      amount: generateInvoiceDto.amount,
+      currency: 'USD', // or get from config
+      status: 'pending',
+      email: generateInvoiceDto.timeEntry.freelancer.email,
+      metadata: JSON.stringify({
+        timeEntryId: generateInvoiceDto.timeEntry.id,
+        projectId: generateInvoiceDto.projectId,
+        description: generateInvoiceDto.description
+      }),
+      contract: generateInvoiceDto.timeEntry.project.contract,
+      user: generateInvoiceDto.timeEntry.freelancer
+    });
+
+    return this.paymentRepository.save(payment);
   }
 }

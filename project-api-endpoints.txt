@@ -1,0 +1,410 @@
+====================================================================
+PROJECT MANAGEMENT API ENDPOINTS
+====================================================================
+
+Base URL: http://localhost:3000
+
+AUTHENTICATION
+--------------------------------------------------------------------
+All endpoints require JWT authentication
+Header: Authorization: Bearer YOUR_JWT_TOKEN
+
+====================================================================
+PROJECT ENDPOINTS
+====================================================================
+
+1. CREATE PROJECT
+--------------------------------------------------------------------
+Method: POST
+URL: /projects
+Body:
+{
+  "name": "Website Redesign",
+  "description": "Complete redesign of company website",
+  "status": "planning",
+  "startDate": "2023-04-01",
+  "endDate": "2023-06-30",
+  "budget": 5000,
+  "currency": "USD",
+  "clientId": "client-uuid",
+  "projectManagerId": "manager-uuid"
+}
+Response: Returns the created project object with ID
+
+2. GET ALL PROJECTS
+--------------------------------------------------------------------
+Method: GET
+URL: /projects
+Query Parameters:
+- status (optional): Filter by status (planning, in_progress, on_hold, completed, cancelled)
+- clientId (optional): Filter by client
+- projectManagerId (optional): Filter by project manager
+Response: Returns array of project objects
+
+3. GET PROJECT BY ID
+--------------------------------------------------------------------
+Method: GET
+URL: /projects/:id
+Response: Returns single project object with details
+
+4. UPDATE PROJECT
+--------------------------------------------------------------------
+Method: PATCH
+URL: /projects/:id
+Body: (all fields optional)
+{
+  "name": "Website Redesign Pro",
+  "description": "Updated project description",
+  "status": "in_progress",
+  "startDate": "2023-04-01",
+  "endDate": "2023-06-30",
+  "budget": 6000,
+  "currency": "USD",
+  "clientId": "client-uuid",
+  "projectManagerId": "manager-uuid"
+}
+Response: Returns updated project object
+
+5. DELETE PROJECT
+--------------------------------------------------------------------
+Method: DELETE
+URL: /projects/:id
+Response: Empty response with 200 OK
+
+====================================================================
+MILESTONE ENDPOINTS
+====================================================================
+
+1. CREATE MILESTONE
+--------------------------------------------------------------------
+Method: POST
+URL: /projects/milestones
+Body:
+{
+  "title": "Design Phase",
+  "description": "Complete all design assets",
+  "status": "planned",
+  "dueDate": "2023-05-01",
+  "isPaymentLinked": true,
+  "paymentAmount": 2000,
+  "projectId": "project-uuid",
+  "order": 1
+}
+Response: Returns created milestone object
+
+2. GET MILESTONE BY ID
+--------------------------------------------------------------------
+Method: GET
+URL: /projects/milestones/:id
+Response: Returns milestone object
+
+3. GET MILESTONES BY PROJECT
+--------------------------------------------------------------------
+Method: GET
+URL: /projects/:projectId/milestones
+Response: Returns array of milestone objects for the specified project
+
+4. UPDATE MILESTONE
+--------------------------------------------------------------------
+Method: PATCH
+URL: /projects/milestones/:id
+Body: (all fields optional)
+{
+  "title": "Updated title",
+  "description": "Updated description",
+  "status": "completed",
+  "dueDate": "2023-05-15",
+  "isPaymentLinked": true,
+  "paymentAmount": 2500,
+  "order": 2
+}
+Response: Returns updated milestone object
+
+5. DELETE MILESTONE
+--------------------------------------------------------------------
+Method: DELETE
+URL: /projects/milestones/:id
+Response: Empty response with 200 OK
+
+====================================================================
+DELIVERABLE ENDPOINTS
+====================================================================
+
+1. CREATE DELIVERABLE
+--------------------------------------------------------------------
+Method: POST
+URL: /projects/deliverables
+Body:
+{
+  "name": "Homepage Mockup",
+  "description": "High-fidelity mockup of the homepage",
+  "status": "pending",
+  "dueDate": "2023-04-15",
+  "projectId": "project-uuid",
+  "milestoneId": "milestone-uuid"
+}
+Response: Returns created deliverable object
+
+2. GET DELIVERABLE BY ID
+--------------------------------------------------------------------
+Method: GET
+URL: /projects/deliverables/:id
+Response: Returns deliverable object
+
+3. GET DELIVERABLES BY PROJECT
+--------------------------------------------------------------------
+Method: GET
+URL: /projects/:projectId/deliverables
+Response: Returns array of deliverable objects for the specified project
+
+4. GET DELIVERABLES BY MILESTONE
+--------------------------------------------------------------------
+Method: GET
+URL: /projects/milestones/:milestoneId/deliverables
+Response: Returns array of deliverable objects for the specified milestone
+
+5. UPDATE DELIVERABLE
+--------------------------------------------------------------------
+Method: PATCH
+URL: /projects/deliverables/:id
+Body: (all fields optional)
+{
+  "name": "Updated deliverable name",
+  "description": "Updated description",
+  "status": "submitted",
+  "dueDate": "2023-04-20",
+  "submittedAt": "2023-04-18T10:30:00Z",
+  "approvedAt": null
+}
+Response: Returns updated deliverable object
+
+6. DELETE DELIVERABLE
+--------------------------------------------------------------------
+Method: DELETE
+URL: /projects/deliverables/:id
+Response: Empty response with 200 OK
+
+====================================================================
+TASK ENDPOINTS
+====================================================================
+
+1. CREATE TASK
+--------------------------------------------------------------------
+Method: POST
+URL: /projects/tasks
+Body:
+{
+  "title": "Create Navigation Design",
+  "description": "Design the new navigation menu",
+  "status": "todo",
+  "priority": "high",
+  "dueDate": "2023-04-10",
+  "estimatedHours": 6,
+  "projectId": "project-uuid",
+  "assigneeIds": ["user-uuid-1", "user-uuid-2"],
+  "parentTaskId": "parent-task-uuid",
+  "completionPercentage": 0
+}
+Response: Returns created task object
+
+2. GET TASK BY ID
+--------------------------------------------------------------------
+Method: GET
+URL: /projects/tasks/:id
+Response: Returns task object with assignees
+
+3. GET TASKS BY PROJECT
+--------------------------------------------------------------------
+Method: GET
+URL: /projects/:projectId/tasks
+Query Parameters:
+- status (optional): Filter by status (todo, in_progress, review, done)
+Response: Returns array of task objects for the specified project
+
+4. GET SUBTASKS
+--------------------------------------------------------------------
+Method: GET
+URL: /projects/tasks/:taskId/subtasks
+Response: Returns array of subtask objects for the specified task
+
+5. UPDATE TASK
+--------------------------------------------------------------------
+Method: PATCH
+URL: /projects/tasks/:id
+Body: (all fields optional)
+{
+  "title": "Updated task title",
+  "description": "Updated task description",
+  "status": "in_progress",
+  "priority": "medium",
+  "dueDate": "2023-04-12",
+  "estimatedHours": 8,
+  "assigneeIds": ["user-uuid-1", "user-uuid-3"],
+  "completionPercentage": 30,
+  "completedAt": null
+}
+Response: Returns updated task object
+
+6. DELETE TASK
+--------------------------------------------------------------------
+Method: DELETE
+URL: /projects/tasks/:id
+Response: Empty response with 200 OK
+
+====================================================================
+FILE ATTACHMENT ENDPOINTS
+====================================================================
+
+1. UPLOAD FILE
+--------------------------------------------------------------------
+Method: POST
+URL: /projects/files
+Content-Type: multipart/form-data
+Form Data:
+- file: The file to upload (required)
+- originalFileName: Original name of the file (required)
+- description: Description of the file (optional)
+- projectId: Associated project ID (optional)
+- taskId: Associated task ID (optional)
+- deliverableId: Associated deliverable ID (optional)
+- uploadedById: ID of the user uploading the file (required)
+- isPublic: Whether the file is publicly accessible (optional)
+Response: Returns created file attachment object with file path
+
+2. GET FILE BY ID
+--------------------------------------------------------------------
+Method: GET
+URL: /projects/files/:id
+Response: Returns file attachment object
+
+3. GET FILES BY PROJECT
+--------------------------------------------------------------------
+Method: GET
+URL: /projects/:projectId/files
+Response: Returns array of file attachment objects for the specified project
+
+4. GET FILES BY TASK
+--------------------------------------------------------------------
+Method: GET
+URL: /projects/tasks/:taskId/files
+Response: Returns array of file attachment objects for the specified task
+
+5. GET FILES BY DELIVERABLE
+--------------------------------------------------------------------
+Method: GET
+URL: /projects/deliverables/:deliverableId/files
+Response: Returns array of file attachment objects for the specified deliverable
+
+6. UPDATE FILE METADATA
+--------------------------------------------------------------------
+Method: PATCH
+URL: /projects/files/:id
+Body:
+{
+  "description": "Updated file description",
+  "isPublic": true
+}
+Response: Returns updated file attachment object
+
+7. DELETE FILE
+--------------------------------------------------------------------
+Method: DELETE
+URL: /projects/files/:id
+Response: Empty response with 200 OK (file is physically deleted)
+
+====================================================================
+TIME LOG ENDPOINTS
+====================================================================
+
+1. CREATE TIME LOG
+--------------------------------------------------------------------
+Method: POST
+URL: /projects/time-logs
+Body:
+{
+  "startTime": "2023-04-01T09:00:00Z",
+  "endTime": "2023-04-01T12:30:00Z",
+  "description": "Working on navigation design",
+  "isBillable": true,
+  "projectId": "project-uuid",
+  "taskId": "task-uuid",
+  "userId": "user-uuid"
+}
+Response: Returns created time log object with calculated duration
+
+2. GET TIME LOG BY ID
+--------------------------------------------------------------------
+Method: GET
+URL: /projects/time-logs/:id
+Response: Returns time log object with related entities
+
+3. GET TIME LOGS BY PROJECT
+--------------------------------------------------------------------
+Method: GET
+URL: /projects/:projectId/time-logs
+Query Parameters:
+- userId (optional): Filter by user
+- startDate (optional): Start date range (YYYY-MM-DD)
+- endDate (optional): End date range (YYYY-MM-DD)
+Response: Returns array of time log objects for the specified project
+
+4. GET TIME LOGS BY TASK
+--------------------------------------------------------------------
+Method: GET
+URL: /projects/tasks/:taskId/time-logs
+Query Parameters:
+- userId (optional): Filter by user
+Response: Returns array of time log objects for the specified task
+
+5. UPDATE TIME LOG
+--------------------------------------------------------------------
+Method: PATCH
+URL: /projects/time-logs/:id
+Body: (all fields optional)
+{
+  "startTime": "2023-04-01T09:00:00Z",
+  "endTime": "2023-04-01T13:00:00Z",
+  "description": "Updated description",
+  "isBillable": true
+}
+Response: Returns updated time log object with recalculated duration if applicable
+
+6. DELETE TIME LOG
+--------------------------------------------------------------------
+Method: DELETE
+URL: /projects/time-logs/:id
+Response: Empty response with 200 OK
+
+7. APPROVE TIME LOG
+--------------------------------------------------------------------
+Method: POST
+URL: /projects/time-logs/:id/approve
+Body:
+{
+  "approvedById": "manager-uuid"
+}
+Response: Returns updated time log object with approval information
+
+====================================================================
+ENVIRONMENT CONFIGURATION
+====================================================================
+
+DATABASE SETTINGS:
+- Host: localhost
+- Port: 5432
+- User: postgres
+- Password: Vinniharu
+- Database Name: testing
+
+JWT AUTHENTICATION:
+- Secret: replace_with_secure_random_string_in_env_file
+
+PAYMENT INTEGRATION:
+- Paystack Secret Key: your_secret_key
+- Paystack Public Key: your_public_key
+
+EMAIL CONFIGURATION:
+- Admin Email: youremail@gmail.com 
+- Password: your-google-app-password
+
+==================================================================== 
