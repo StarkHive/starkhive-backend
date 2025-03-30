@@ -58,6 +58,7 @@ import { JobAnalyticsModule } from './job-analytics/job-analytics.module';
 import { SseModule } from './sse/sse.module';
 import * as dotenv from 'dotenv';
 import { RecommendationsModule } from './recommendations/recommendations.module';
+import { MetricsModule } from './metrics/metrics.module';
 dotenv.config();
 
 @Module({
@@ -130,6 +131,7 @@ dotenv.config();
 
     JobAnalyticsModule,
     SseModule,
+    MetricsModule,
   ],
   providers: [RolesGuard, PermissionGuard, PermissionService, PostService],
 })
