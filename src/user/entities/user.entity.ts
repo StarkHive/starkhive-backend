@@ -30,6 +30,7 @@ import { UserSkill } from '../../skills/entities/skill.entity';
 import { Reputation } from '@src/reputation/Reputation.entity';
 import { Report } from '@src/reports/report.entity';
 import { UserSession } from '@src/user-session/entities/user-session.entity';
+import { Referral } from '../../referral/referral.entity';
 
 @Entity('users')
 @Index(['username', 'email'])
@@ -152,4 +153,7 @@ export class User {
 
   @OneToMany(() => UserSession, (session) => session.user)
   sessions: UserSession[];
+
+  @OneToMany(() => Referral, (referral) => referral.referrer)
+  referrals: Referral[];
 }
