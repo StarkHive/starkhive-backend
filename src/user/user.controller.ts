@@ -32,7 +32,7 @@ export class UserController {
       throw new UnauthorizedException('User not authenticated');
     }
 
-    await this.auditService.createLog({
+    await this.auditService.createAuditLog({
       action: 'user_created',
       resourceType: 'user',
       userId: currentUser.id,

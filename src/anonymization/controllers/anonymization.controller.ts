@@ -3,7 +3,8 @@ import { AnonymizationService } from '../services/anonymization.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from '../../auth/decorators/roles.decorator';
-import { Role } from '../../auth/enums/role.enum';
+import { Role } from '../../auth/roles.enum';
+// import { Role } from '../../auth/enums/role.enum';
 
 @Controller('anonymization')
 @UseGuards(JwtAuthGuard, RolesGuard)
