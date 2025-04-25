@@ -50,6 +50,8 @@ import { JobAnalyticsModule } from './job-analytics/job-analytics.module';
 import { SseModule } from './sse/sse.module';
 import { RecommendationsModule } from './recommendations/recommendations.module';
 import { ValidationModule } from './validation/validation.module';
+import { WatchlistModule } from './watchlist/watchlist.module';
+import { RecruiterModule } from './recruiter/recruiter.module';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
@@ -121,6 +123,8 @@ dotenv.config();
     JobAnalyticsModule,
     SseModule,
     RecommendationsModule,
+    WatchlistModule,
+    RecruiterModule,
   ],
   providers: [
     RolesGuard,

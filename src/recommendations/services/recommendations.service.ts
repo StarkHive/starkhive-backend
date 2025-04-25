@@ -7,12 +7,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
   Recommendation,
-  RecommendationStatus,
 } from '../entities/recommendation.entity';
 import { CreateRecommendationDto } from '../dto/create-recommendation.dto';
 import { UpdateRecommendationDto } from '../dto/update-recommendation.dto';
 import { NotificationsService } from '../../notifications/notifications.service';
 import { UserService } from '@src/user/user.service';
+import { RecommendationStatus } from '../enums/RecommendationStatus.enum';
 
 @Injectable()
 export class RecommendationsService {

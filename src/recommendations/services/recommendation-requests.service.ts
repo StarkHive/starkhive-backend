@@ -7,12 +7,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
   RecommendationRequest,
-  RequestStatus,
 } from '../entities/recommendation-request.entity';
 import { CreateRecommendationRequestDto } from '../dto/create-recommendation-request.dto';
 import { UpdateRecommendationRequestDto } from '../dto/update-recommendation-request.dto';
 import { UserService } from '@src/user/user.service';
 import { NotificationsService } from '../../notifications/notifications.service';
+import { RequestStatus } from '../enums/RequestStatus.enum';
 
 @Injectable()
 export class RecommendationRequestsService {
