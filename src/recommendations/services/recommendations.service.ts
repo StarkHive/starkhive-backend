@@ -5,14 +5,12 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import {
-  Recommendation,
-} from '../entities/recommendation.entity';
+import { Recommendation } from '../entities/recommendation.entity';
+import { RecommendationStatus } from '../enums/RecommendationStatus.enum';
 import { CreateRecommendationDto } from '../dto/create-recommendation.dto';
 import { UpdateRecommendationDto } from '../dto/update-recommendation.dto';
 import { NotificationsService } from '../../notifications/notifications.service';
 import { UserService } from '@src/user/user.service';
-import { RecommendationStatus } from '../enums/RecommendationStatus.enum';
 
 @Injectable()
 export class RecommendationsService {
@@ -47,7 +45,6 @@ export class RecommendationsService {
     const savedRecommendation =
       await this.recommendationRepository.save(recommendation);
 
-    // Notify recipient about new recommendation
     await this.notificationsService.create({
       userId: recipient.id,
       type: 'NEW_RECOMMENDATION',
@@ -98,7 +95,6 @@ export class RecommendationsService {
   ): Promise<Recommendation> {
     const recommendation = await this.findOne(id);
 
-    // Check if user is authorized to update
     const isAuthor = recommendation.author.id === userId;
     const isRecipient = recommendation.recipient.id === userId;
 
@@ -108,7 +104,6 @@ export class RecommendationsService {
       );
     }
 
-    // Authors can only update content
     if (isAuthor && !isRecipient) {
       if (
         updateRecommendationDto.status ||
@@ -118,19 +113,16 @@ export class RecommendationsService {
       }
     }
 
-    // Recipients can only update status and visibility
     if (isRecipient && !isAuthor) {
       if (updateRecommendationDto.content) {
         throw new ForbiddenException('Recipients cannot update the content');
       }
     }
 
-    // Update the recommendation
     Object.assign(recommendation, updateRecommendationDto);
     const updatedRecommendation =
       await this.recommendationRepository.save(recommendation);
 
-    // Send notifications based on status changes
     if (updateRecommendationDto.status === RecommendationStatus.APPROVED) {
       await this.notificationsService.create({
         userId: recommendation.author.id,
@@ -153,7 +145,6 @@ export class RecommendationsService {
   async remove(id: string, userId: string): Promise<void> {
     const recommendation = await this.findOne(id);
 
-    // Only the author or recipient can delete a recommendation
     if (
       recommendation.author.id !== userId &&
       recommendation.recipient.id !== userId

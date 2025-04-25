@@ -1,8 +1,16 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between, FindOptionsWhere } from 'typeorm';
+import { Repository } from 'typeorm';
 import { AuditLog } from './entitites/audit-log.entity';
-import { CreateRoleAuditDto, QueryRoleAuditDto, RoleAuditAction } from './dto/role-audit.dto';
+import {
+  CreateRoleAuditDto,
+  QueryRoleAuditDto,
+  RoleAuditAction,
+} from './dto/role-audit.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PaginatedResponse } from '../common/interfaces/paginated-response.interface';
 
@@ -14,6 +22,10 @@ export class AuditService {
     private eventEmitter: EventEmitter2,
   ) {}
 
+  async createLog(data: Partial<AuditLog>): Promise<AuditLog> {
+    return this.createAuditLog(data);
+  }
+
   async createAuditLog(data: Partial<AuditLog>): Promise<AuditLog> {
     try {
       if (!data.action) {
@@ -23,52 +35,74 @@ export class AuditService {
       const auditLog = this.auditLogRepository.create(data);
       const savedLog = await this.auditLogRepository.save(auditLog);
 
-      if (data.resourceType === 'role' && this.isCriticalRoleChange(data.action)) {
+      if (
+        data.resourceType === 'role' &&
+        this.isCriticalRoleChange(data.action)
+      ) {
         await this.handleCriticalChange(savedLog);
       }
 
       return savedLog;
     } catch (error: unknown) {
       if (error instanceof Error) {
-        throw new BadRequestException('Failed to create audit log: ' + error.message);
+        throw new BadRequestException(
+          'Failed to create audit log: ' + error.message,
+        );
       }
       throw new BadRequestException('Failed to create audit log');
     }
   }
 
-  async queryRoleAuditLogs(query: QueryRoleAuditDto): Promise<PaginatedResponse<AuditLog>> {
+  async queryRoleAuditLogs(
+    query: QueryRoleAuditDto,
+  ): Promise<PaginatedResponse<AuditLog>> {
     try {
       const page = query.page ?? 1;
       const limit = query.limit ?? 20;
       const skip = (page - 1) * limit;
 
-      const queryBuilder = this.auditLogRepository.createQueryBuilder('audit')
+      const queryBuilder = this.auditLogRepository
+        .createQueryBuilder('audit')
         .leftJoinAndSelect('audit.user', 'user')
-        .where('audit.resourceType = :resourceType', { resourceType: 'role' });
+        .where('audit.resourceType = :resourceType', {
+          resourceType: 'role',
+        });
 
       if (query.action) {
-        queryBuilder.andWhere('audit.action = :action', { action: query.action });
+        queryBuilder.andWhere('audit.action = :action', {
+          action: query.action,
+        });
       }
 
       if (query.roleId) {
-        queryBuilder.andWhere('audit.resourceId = :roleId', { roleId: query.roleId });
+        queryBuilder.andWhere('audit.resourceId = :roleId', {
+          roleId: query.roleId,
+        });
       }
 
       if (query.userId) {
-        queryBuilder.andWhere('audit.userId = :userId', { userId: query.userId });
+        queryBuilder.andWhere('audit.userId = :userId', {
+          userId: query.userId,
+        });
       }
 
       if (query.startDate && query.endDate) {
-        queryBuilder.andWhere('audit.createdAt BETWEEN :startDate AND :endDate', {
-          startDate: new Date(query.startDate),
-          endDate: new Date(query.endDate),
-        });
+        queryBuilder.andWhere(
+          'audit.createdAt BETWEEN :startDate AND :endDate',
+          {
+            startDate: new Date(query.startDate),
+            endDate: new Date(query.endDate),
+          },
+        );
       }
 
       if (query.search) {
-        queryBuilder.andWhere('(audit.details::text ILIKE :search OR user.email ILIKE :search)', {
-          search: `%${query.search}%`,
-        });
+        queryBuilder.andWhere(
+          '(audit.details::text ILIKE :search OR user.email ILIKE :search)',
+          {
+            search: `%${query.search}%`,
+          },
+        );
       }
 
       const [items, total] = await queryBuilder
@@ -86,7 +120,9 @@ export class AuditService {
       };
     } catch (error: unknown) {
       if (error instanceof Error) {
-        throw new BadRequestException('Failed to query audit logs: ' + error.message);
+        throw new BadRequestException(
+          'Failed to query audit logs: ' + error.message,
+        );
       }
       throw new BadRequestException('Failed to query audit logs');
     }
@@ -125,7 +161,9 @@ export class AuditService {
       return summary;
     } catch (error: unknown) {
       if (error instanceof Error) {
-        throw new BadRequestException('Failed to get audit summary: ' + error.message);
+        throw new BadRequestException(
+          'Failed to get audit summary: ' + error.message,
+        );
       }
       throw new BadRequestException('Failed to get audit summary');
     }
@@ -141,8 +179,10 @@ export class AuditService {
 
       await this.storeCriticalChange(auditLog);
     } catch (error: unknown) {
-      // Log error but don't throw to prevent blocking the main audit flow
-      console.error('Failed to handle critical change:', error instanceof Error ? error.message : 'Unknown error');
+      console.error(
+        'Failed to handle critical change:',
+        error instanceof Error ? error.message : 'Unknown error',
+      );
     }
   }
 
@@ -160,8 +200,7 @@ export class AuditService {
   }
 
   private async storeCriticalChange(auditLog: AuditLog): Promise<void> {
-    // Implement storage of critical changes if needed
-    // This could be in a separate table or external service
+    // Extend this method for custom critical storage (external service or DB)
   }
 
   private isCriticalRoleChange(action: string): boolean {

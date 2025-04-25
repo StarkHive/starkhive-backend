@@ -14,9 +14,9 @@ export class AnonymizationController {
   @Post('anonymize-data')
   @Roles(Role.ADMIN)
   async anonymizeData(
-    @Body() data: Record<string, any>,
-    @Body('fieldsToAnonymize') fieldsToAnonymize: string[],
+    @Body() body: { data: Record<string, any>; fieldsToAnonymize: string[] },
   ) {
+    const { data, fieldsToAnonymize } = body;
     return this.anonymizationService.anonymizeFields(data, fieldsToAnonymize);
   }
 }

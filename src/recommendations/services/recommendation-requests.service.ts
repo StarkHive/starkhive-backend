@@ -5,9 +5,8 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import {
-  RecommendationRequest,
-} from '../entities/recommendation-request.entity';
+import { RecommendationRequest } from '../entities/recommendation-request.entity';
+
 import { CreateRecommendationRequestDto } from '../dto/create-recommendation-request.dto';
 import { UpdateRecommendationRequestDto } from '../dto/update-recommendation-request.dto';
 import { UserService } from '@src/user/user.service';
@@ -36,7 +35,6 @@ export class RecommendationRequestsService {
       throw new NotFoundException('User not found');
     }
 
-    // Check if there's already a pending request
     const existingRequest = await this.requestRepository.findOne({
       where: {
         requester: { id: requesterId },
@@ -60,7 +58,6 @@ export class RecommendationRequestsService {
 
     const savedRequest = await this.requestRepository.save(request);
 
-    // Notify the requestee
     await this.notificationsService.create({
       userId: requestee.id,
       type: 'RECOMMENDATION_REQUEST',
@@ -108,7 +105,6 @@ export class RecommendationRequestsService {
   ): Promise<RecommendationRequest> {
     const request = await this.findOne(id);
 
-    // Only the requestee can update the status
     if (request.requestee.id !== userId) {
       throw new ForbiddenException(
         'Only the recipient of the request can update its status',
@@ -118,7 +114,6 @@ export class RecommendationRequestsService {
     Object.assign(request, updateRequestDto);
     const updatedRequest = await this.requestRepository.save(request);
 
-    // Send notification based on status change
     if (updateRequestDto.status === RequestStatus.ACCEPTED) {
       await this.notificationsService.create({
         userId: request.requester.id,
@@ -145,7 +140,6 @@ export class RecommendationRequestsService {
   async remove(id: string, userId: string): Promise<void> {
     const request = await this.findOne(id);
 
-    // Only the requester can delete a request
     if (request.requester.id !== userId) {
       throw new ForbiddenException(
         'Only the requester can delete this request',
