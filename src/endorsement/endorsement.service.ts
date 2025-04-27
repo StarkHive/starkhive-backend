@@ -5,9 +5,9 @@ import {
 } from '@nestjs/common';
 import { CreateEndorsementDto } from './dto/create-endorsement.dto';
 import { EndorsementRepository } from './repository/endorsement.repository';
-import { UserProfileRepository } from '@src/user-profile/repository/user-profile.repository';
+import { UserProfileRepository } from '../user-profile/repository/user-profile.repository';
 import { MoreThan } from 'typeorm';
-import { NotificationsService } from '@src/notifications/notifications.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class EndorsementService {

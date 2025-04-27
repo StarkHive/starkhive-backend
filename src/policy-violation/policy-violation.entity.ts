@@ -7,7 +7,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Policy } from '../policy/policy.entity';
-import { User } from '@src/user/entities/user.entity';
+import { User } from '../user/entities/user.entity';
 
 export enum ViolationStatus {
   DETECTED = 'detected',

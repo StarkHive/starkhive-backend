@@ -5,6 +5,7 @@ import { ReportingService } from './reporting.service';
 import { ReportingController } from './reporting.controller';
 import { Report } from './entities/report.entity';
 import { AuditModule } from '../audit/audit.module';
+
 import { CacheModule } from '../cache/cache.module';
 
 @Module({

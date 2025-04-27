@@ -9,8 +9,9 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { ReportType } from '../enums/report-type.enum';
-import { User } from '@src/user/entities/user.entity';
-import { ReportStatus } from '../enums/report-status.enum';
+import { User } from '../../user/entities/user.entity';
+import { ReportStatus } from '../enums/report-status.enums';
+
 
 @Entity('reports')
 export class Report {
