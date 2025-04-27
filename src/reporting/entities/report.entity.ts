@@ -2,7 +2,7 @@
 // 8. Create Report Entity (src/reporting/entities/report.entity.ts)
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { ReportType } from '../enums/report-type.enum';
-import { User } from '@src/user/entities/user.entity';
+import { User } from '../../user/entities/user.entity';
 import { ReportStatus } from '../enums/report-status.enums';
 
 @Entity('reports')

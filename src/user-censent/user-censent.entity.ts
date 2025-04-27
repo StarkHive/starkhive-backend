@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 import { Policy } from '../policy/policy.entity';
 import { PolicyVersion } from '../policy-version/policy-version.entity';
-import { User } from '@src/user/entities/user.entity';
+import { User } from '../user/entities/user.entity';
 
 @Entity('user_consents')
 export class UserConsent {

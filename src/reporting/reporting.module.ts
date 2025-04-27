@@ -5,7 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ReportingService } from './reporting.service';
 import { ReportingController } from './reporting.controller';
 import { Report } from './entities/report.entity';
-import { AuditModule } from '@src/audit/audit.module';
+import { AuditModule } from '../audit/audit.module';
 
 
 @Module({

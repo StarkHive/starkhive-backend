@@ -5,7 +5,7 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { UtilService } from './utils/utils.function';
-import { UserModule } from '@src/user/user.module';
+import { UserModule } from '../user/user.module';
 
 @Module({
     imports: [

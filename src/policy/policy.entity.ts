@@ -7,9 +7,9 @@ import {
   OneToMany,
   Index,
 } from 'typeorm';
-import { PolicyVersion } from '@src/policy-version/policy-version.entity';
-import { UserConsent } from '@src/user-censent/user-censent.entity';
-import { PolicyViolation } from '@src/policy-violation/policy-violation.entity';
+import { PolicyVersion } from '../policy-version/policy-version.entity';
+import { UserConsent } from '../user-censent/user-censent.entity';
+import { PolicyViolation } from '../policy-violation/policy-violation.entity';
 
 export enum PolicyType {
   TERMS_OF_SERVICE = 'terms_of_service',

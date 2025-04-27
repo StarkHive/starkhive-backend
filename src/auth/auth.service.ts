@@ -10,8 +10,8 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateUserDto } from '@src/user/dto/create-user.dto';
-import { User } from '@src/user/entities/user.entity';
+import { CreateUserDto } from '../user/dto/create-user.dto';
+import { User } from '../user/entities/user.entity';
 import { hash } from 'starknet';
 import { Repository } from 'typeorm';
 import * as dotenv from 'dotenv';

@@ -3,7 +3,7 @@ import { Request } from 'express'; // Import the extended Request type
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { AuditService } from '@src/audit/audit.service';
+import { AuditService } from '../audit/audit.service';
 import { User } from './user.interface'; // Import the User interface
 
 @Controller('user')

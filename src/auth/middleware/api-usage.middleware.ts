@@ -1,7 +1,7 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
-import { MetricType } from '@src/analytics/enums/metric-types.enum';
-import { AnalyticsService } from '@src/analytics/analytic.service';
+import { MetricType } from '../../analytics/enums/metric-types.enum';
+import { AnalyticsService } from '../../analytics/analytic.service';
 
 
 @Injectable()

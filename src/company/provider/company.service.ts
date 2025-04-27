@@ -1,7 +1,7 @@
 import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import { CreateCompanyDto } from '../DTO/create-company.dto';
 import { UpdateCompanyDto } from '../DTO/updateCompanyDto';
-import { InjectRepository } from '@nestjs/typeorm';
+import { InjectRepository } from '../repository/company.repository';
 import { Repository } from 'typeorm';
 import { Company } from '../company.entity';
 import { FindACompanyProvider } from './find-a-company.provider';

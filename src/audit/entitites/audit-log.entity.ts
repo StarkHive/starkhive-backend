@@ -1,5 +1,5 @@
 // 7. Create AuditLog Entity (src/audit/entities/audit-log.entity.ts)
-import { User } from '@src/user/entities/user.entity';
+import { User } from '../../user/entities/user.entity';
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 
 
