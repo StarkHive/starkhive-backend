@@ -3,10 +3,11 @@ import { PaymentService } from './payment.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { Response } from 'express';
 import { PermissionGuard } from 'src/auth/guards/permissions.guard';
+import { CacheService } from "@src/cache/cache.service";
 
 @Controller('payment')
 export class PaymentController {
-  constructor(private readonly paymentService: PaymentService) {}
+  constructor(private readonly paymentService: PaymentService, private cacheManager: CacheService) {}
 
   @UseGuards(PermissionGuard)
   @Post('initialize')
@@ -52,12 +53,26 @@ export class PaymentController {
     @Param('contractId') contractId: string,
     @Query('userId') userId: string,
   ) {
-    return this.paymentService.getPaymentsByContract(contractId, userId);
+    const cachedPaymentsByContract = await this.cacheManager.get(`payment:contract:${contractId}:${userId}`, 'PaymentService');
+    if (cachedPaymentsByContract) {
+      return cachedPaymentsByContract;
+    }
+
+    const paymentsByContract = await this.paymentService.getPaymentsByContract(contractId, userId);
+    await this.cacheManager.set(`payment:contract:${contractId}:${userId}`, paymentsByContract);
+    return paymentsByContract;
   }
 
   @UseGuards(PermissionGuard)
   @Get(':reference')
   async getPaymentByReference(@Param('reference') reference: string) {
-    return this.paymentService.getPaymentByReference(reference);
+    const cachedPaymentsByReference = await this.cacheManager.get(`payment:${reference}`, 'PaymentService');
+    if (cachedPaymentsByReference) {
+      return cachedPaymentsByReference;
+    }
+
+    const paymentsByReference = await this.paymentService.getPaymentByReference(reference);
+    await this.cacheManager.set(`payment:${reference}`, paymentsByReference);
+    return paymentsByReference;
   }
 }

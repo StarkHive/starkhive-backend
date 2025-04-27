@@ -1,9 +1,12 @@
+import { Entity, PrimaryGeneratedColumn, ManyToOne, Column, CreateDateColumn } from 'typeorm';
+import { Comment } from './comment.entity';
+
 @Entity()
 export class CommentReaction {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Comment, (comment) => comment.reactions, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Comment, (comment: Comment) => comment.reactions, { onDelete: 'CASCADE' })
   comment: Comment;
 
   @Column()

@@ -1,107 +1,112 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { FreelancerProfile } from '../entities/freelancer-profile.entity';
 import { CreateFreelancerProfileDto } from '../dto/create-freelancer-profile.dto';
+import { SearchFreelancerProfileDto, SortBy, SortOrder } from '../dto/search-freelancer-profile.dto';
 
 @Injectable()
 export class FreelancerProfileRepository {
   constructor(
     @InjectRepository(FreelancerProfile)
-    private readonly freelancerProfileRepository: Repository<FreelancerProfile>,
+    private readonly repository: Repository<FreelancerProfile>,
   ) {}
 
-  /**
-   * Creates a new freelancer profile.
-   * @param payload - Data for creating a freelancer profile.
-   * @returns The newly created FreelancerProfile.
-   */
   async createFreelancerProfile(
-    payload: CreateFreelancerProfileDto,
-  ): Promise<FreelancerProfile> {
-    const freelancerProfile = this.freelancerProfileRepository.create(payload);
-    return this.freelancerProfileRepository.save(freelancerProfile);
+    createFreelancerProfileDto: CreateFreelancerProfileDto,
+  ) {
+    const profile = this.repository.create(createFreelancerProfileDto);
+    return this.repository.save(profile);
   }
 
-  /**
-   * Finds a freelancer profile by user ID.
-   * @param userId - The ID of the user.
-   * @returns The FreelancerProfile or null if not found.
-   */
-  async findProfileByUserId(userId: string): Promise<FreelancerProfile | null> {
-    return this.freelancerProfileRepository.findOne({
-      where: { user: { id: userId } },
-      relations: ['user'], // Ensures user details are included
-    });
+  async findAll() {
+    return this.repository.find();
   }
 
-  /**
-   * Finds a freelancer profile by ID.
-   * @param id - The ID of the freelancer profile.
-   * @returns The FreelancerProfile or null if not found.
-   */
-  async findById(id: string): Promise<FreelancerProfile | null> {
-    return this.freelancerProfileRepository.findOne({
-      where: { id },
-      relations: ['user'], // Include user details for full profile context
-    });
+  async findProfileByUserId(userId: string) {
+    return this.repository.findOne({ where: { user: { id: userId } } });
   }
 
-  /**
-   * Retrieves all freelancer profiles.
-   * @returns An array of FreelancerProfiles.
-   */
-  async findAll(): Promise<FreelancerProfile[]> {
-    return this.freelancerProfileRepository.find({
-      relations: ['user'], // Include user details for full profile context
-    });
+  async updateSkills(id: string, skills: string[]) {
+    return this.repository.update(id, { skills });
   }
 
-  /**
-   * Updates freelancer profile skills.
-   * @param id - The ID of the freelancer profile.
-   * @param skills - New skills array.
-   * @returns The updated FreelancerProfile.
-   * @throws NotFoundException if the profile is not found.
-   */
-  async updateSkills(id: string, skills: string[]): Promise<FreelancerProfile> {
-    const profile = await this.findById(id);
-    if (!profile)
-      throw new NotFoundException(`Freelancer profile with ID ${id} not found`);
-
-    profile.skills = skills;
-    return this.freelancerProfileRepository.save(profile);
+  async updateExperience(id: string, experience: string) {
+    return this.repository.update(id, { experience });
   }
 
-  /**
-   * Updates freelancer profile experience.
-   * @param id - The ID of the freelancer profile.
-   * @param experience - New experience text.
-   * @returns The updated FreelancerProfile.
-   * @throws NotFoundException if the profile is not found.
-   */
-  async updateExperience(
-    id: string,
-    experience: string,
-  ): Promise<FreelancerProfile> {
-    const profile = await this.findById(id);
-    if (!profile)
-      throw new NotFoundException(`Freelancer profile with ID ${id} not found`);
-
-    profile.experience = experience;
-    return this.freelancerProfileRepository.save(profile);
+  async deleteProfile(id: string) {
+    return this.repository.delete(id);
   }
 
-  /**
-   * Deletes a freelancer profile by ID.
-   * @param id - The ID of the freelancer profile.
-   * @throws NotFoundException if the profile does not exist.
-   */
-  async deleteProfile(id: string): Promise<void> {
-    const profile = await this.findById(id);
-    if (!profile)
-      throw new NotFoundException(`Freelancer profile with ID ${id} not found`);
+  async searchProfiles(searchParams: SearchFreelancerProfileDto) {
+    const {
+      skills,
+      experienceLevel,
+      location,
+      minRating,
+      languages,
+      minHourlyRate,
+      maxHourlyRate,
+      sortBy = SortBy.RATING,
+      sortOrder = SortOrder.DESC,
+      page = 1,
+      limit = 10,
+    } = searchParams;
 
-    await this.freelancerProfileRepository.remove(profile);
+    const queryBuilder = this.repository.createQueryBuilder('profile')
+      .leftJoinAndSelect('profile.user', 'user')
+      .leftJoinAndSelect('profile.portfolioProjects', 'portfolioProjects');
+
+    // Apply filters
+    if (skills && skills.length > 0) {
+      queryBuilder.andWhere('profile.skills @> ARRAY[:...skills]', { skills });
+    }
+
+    if (experienceLevel) {
+      queryBuilder.andWhere('profile.experienceLevel = :experienceLevel', { experienceLevel });
+    }
+
+    if (location) {
+      queryBuilder.andWhere('LOWER(profile.location) LIKE LOWER(:location)', {
+        location: `%${location}%`,
+      });
+    }
+
+    if (minRating) {
+      queryBuilder.andWhere('profile.rating >= :minRating', { minRating });
+    }
+
+    if (languages && languages.length > 0) {
+      queryBuilder.andWhere('profile.languages @> ARRAY[:...languages]', { languages });
+    }
+
+    if (minHourlyRate) {
+      queryBuilder.andWhere('profile.hourlyRate >= :minHourlyRate', { minHourlyRate });
+    }
+
+    if (maxHourlyRate) {
+      queryBuilder.andWhere('profile.hourlyRate <= :maxHourlyRate', { maxHourlyRate });
+    }
+
+    // Apply sorting
+    queryBuilder.orderBy(`profile.${sortBy}`, sortOrder);
+
+    // Apply pagination
+    const skip = (page - 1) * limit;
+    queryBuilder.skip(skip).take(limit);
+
+    // Get results and total count
+    const [profiles, total] = await queryBuilder.getManyAndCount();
+
+    return {
+      data: profiles,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 }

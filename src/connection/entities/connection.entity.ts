@@ -29,5 +29,4 @@ export class Connection {
 
   @Column({ nullable: true })
   connectedAt?: Date; // Timestamp when the connection was accepted
-  
 }

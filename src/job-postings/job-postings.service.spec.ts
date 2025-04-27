@@ -17,7 +17,11 @@ describe('JobPostingsService', () => {
   });
 
   it('should create a job', () => {
-    const job = service.create({ title: 'NestJS Dev', description: 'Build APIs', company: 'Tech Co' });
+    const job = service.create({
+      title: 'NestJS Dev',
+      description: 'Build APIs',
+      company: "Stark",
+    });
     expect(job).toHaveProperty('id');
   });
 });

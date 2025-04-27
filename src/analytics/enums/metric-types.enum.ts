@@ -1,4 +1,3 @@
-// src/analytics/enums/metric-type.enum.ts
 export enum MetricType {
     USER_SIGNUP = 'user_signup',
     USER_LOGIN = 'user_login',

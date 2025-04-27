@@ -17,10 +17,15 @@ export class ReputationRepository extends Repository<Reputation> {
   async updateReputation(userId: number, rating: number): Promise<Reputation> {
     let reputation = await this.getReputationByUserId(userId);
     if (!reputation) {
-      reputation = this.create({ user: { id: userId.toString() }, rating, completedJobs: 1 });
+      reputation = this.create({
+        user: { id: userId.toString() },
+        rating,
+        completedJobs: 1,
+      });
     } else {
       reputation.completedJobs += 1;
-      reputation.rating = (reputation.rating + rating) / reputation.completedJobs;
+      reputation.rating =
+        (reputation.rating + rating) / reputation.completedJobs;
     }
     return this.save(reputation);
   }

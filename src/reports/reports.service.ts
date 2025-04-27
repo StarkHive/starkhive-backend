@@ -31,9 +31,9 @@ export class ReportsService {
     }
 
     const report = await this.reportsRepository.createReport({
-      reporter: { id: reporterId },
-      reportedUser: reportedUserId ? { id: reportedUserId } : null,
-      contentId,
+      reporter: { id: reporterId } as any,
+      reportedUser: reportedUserId ? { id: reportedUserId } as any : undefined,
+      contentId: contentId ?? undefined,
       category,
       reason,
       status: 'pending',
@@ -97,9 +97,10 @@ export class ReportsService {
     const updatedReport = await this.reportsRepository.save(report);
 
     // Send notification to the reporter
-    await this.notificationsService.createNotification({
-      userId: report.reporter.id.toString(), // Ensure userId is a string
+    await this.notificationsService.create({
+      userId: report.reporter.id,
       message: `Your report (ID: ${report.id}) has been updated to status: ${status}`,
+      type: 'report_update',
     });
 
     return updatedReport;
@@ -118,8 +119,8 @@ export class ReportsService {
     }
 
     const appeal = this.manager.create(Appeal, {
-      report,
-      appellant: { id: appellantId },
+      report: report as any,
+      appellant: { id: appellantId.toString() } as any,
       reason,
       status: 'pending',
     });

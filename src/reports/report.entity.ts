@@ -2,6 +2,7 @@
 import { User } from '../user/entities/user.entity';
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne } from 'typeorm';
 
+
 @Entity()
 export class Report {
   @PrimaryGeneratedColumn()
@@ -10,7 +11,7 @@ export class Report {
   @ManyToOne(() => User, { nullable: false })
   reporter: User; // The user who submitted the report
 
-  @ManyToOne(() => User, { nullable: true })
+  @ManyToOne(() => User, (user) => user.reports, { nullable: true })
   reportedUser: User; // The user being reported (if applicable)
 
   @Column({ nullable: true })

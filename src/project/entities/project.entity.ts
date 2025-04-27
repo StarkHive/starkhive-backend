@@ -15,6 +15,7 @@ import { Task } from './task.entity';
 import { FileAttachment } from './file-attachment.entity';
 import { TimeLog } from './time-log.entity';
 import { Contract } from '../../contract/entities/contract.entity';
+import { FreelancerProfile } from '@src/freelancer-profile/entities/freelancer-profile.entity';
 
 export enum ProjectStatus {
   PLANNING = 'planning',
@@ -34,6 +35,9 @@ export class Project {
 
   @Column({ type: 'text' })
   description: string;
+
+  @ManyToOne(() => FreelancerProfile, (profile) => profile.projects)
+  freelancer: FreelancerProfile;
 
   @Column({
     type: 'enum',
@@ -71,7 +75,7 @@ export class Project {
   @Column({ name: 'project_manager_id', nullable: true })
   projectManagerId: string;
 
-  @ManyToOne(() => Contract, contract => contract.projects)
+  @ManyToOne(() => Contract, (contract) => contract.projects)
   @JoinColumn()
   contract: Contract;
 

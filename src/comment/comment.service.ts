@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { Comment } from './entities/comment.entity';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
@@ -47,7 +47,11 @@ export class CommentService {
 
   async getCommentsByEntity(entityType: string, entityId: string): Promise<Comment[]> {
     return this.commentRepository.find({
-      where: { entityType, entityId, parent: null },
+      where: { 
+        entityType, 
+        entityId, 
+        parent: IsNull() 
+      },
       relations: ['replies', 'replies.replies'],
     });
   }

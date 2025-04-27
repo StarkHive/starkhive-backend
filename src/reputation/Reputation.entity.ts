@@ -1,16 +1,22 @@
-import { Entity, 
-        PrimaryGeneratedColumn, 
-        Column, ManyToOne, 
-        CreateDateColumn, 
-        UpdateDateColumn } from 'typeorm';
-import { User } from '../user/entities/user.entity';
+
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToOne,
+  JoinColumn,
+} from 'typeorm';
+import { User } from '@src/user/entities/user.entity';
 
 @Entity()
 export class Reputation {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => User, (user) => user.reputation, { onDelete: 'CASCADE' })
+  @OneToOne(() => User, (user) => user.reputation, { onDelete: 'CASCADE' })
+  @JoinColumn() // Required for the owner of the relation
   user: User;
 
   @Column({ type: 'float', default: 0 })

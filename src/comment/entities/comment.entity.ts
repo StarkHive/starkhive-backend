@@ -7,6 +7,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { CommentReaction } from './CommentReaction.entity';
 
 @Entity()
 export class Comment {
@@ -36,6 +37,9 @@ export class Comment {
 
   @Column({ nullable: true })
   entityType: string;
+
+  @OneToMany(() => CommentReaction, (reaction) => reaction.comment)
+  reactions: CommentReaction[];
 
   @CreateDateColumn()
   createdAt: Date;

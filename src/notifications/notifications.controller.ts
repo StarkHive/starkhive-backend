@@ -1,27 +1,42 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { Controller, Post, Body, Get, Query, UseGuards, Req } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
-import { CreateNotificationDto } from './dto/create-notification.dto';
-import { UpdateNotificationDto } from './dto/update-notification.dto';
+import { UpdateNotificationPreferenceDto } from './dto/notification-preference.dto';
+import { TriggerNotificationDto } from './dto/trigger-notification.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { NotificationStatus } from './entities/notification.entity';
 
 @Controller('notifications')
+@UseGuards(JwtAuthGuard)
 export class NotificationsController {
-    constructor(private readonly notificationService: NotificationsService) {}
+    constructor(private readonly notificationsService: NotificationsService) {}
 
-    /** Get all notifications for a user */
-    @Get(':userId')
-    public async getJobNotification(@Param('userId') userId: number) {
-        return await this.notificationService.findByUser(userId);
+    @Post('preferences')
+    async updatePreferences(
+        @Req() req: any,
+        @Body() dto: UpdateNotificationPreferenceDto,
+    ) {
+        return this.notificationsService.updatePreferences(req.user.id, dto);
     }
 
-    /** Create a new notification */
-    @Post('send')
-    public async sendNotification(@Body() createNotificationDto: CreateNotificationDto) {
-        return await this.notificationService.create(createNotificationDto);
+    @Post('trigger')
+    @UseGuards(RolesGuard)
+    @Roles('admin')
+    async triggerNotification(@Body() dto: TriggerNotificationDto) {
+        return this.notificationsService.triggerNotification(dto);
     }
 
-    /** Mark a notification as read */
-    @Patch(':id')
-    public async markAsRead(@Param('id') id: number, @Body() updateNotificationDto: UpdateNotificationDto) {
-        return await this.notificationService.markAsRead(id, updateNotificationDto);
+    @Get()
+    async getNotifications(
+        @Req() req: any,
+        @Query('status') status?: NotificationStatus,
+    ) {
+        return this.notificationsService.getNotifications(req.user.id, status);
+    }
+
+    @Get('preferences')
+    async getPreferences(@Req() req: any) {
+        return this.notificationsService.getPreferences(req.user.id);
     }
 }

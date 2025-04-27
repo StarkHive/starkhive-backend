@@ -5,6 +5,7 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from '../../auth/decorators/roles.decorator';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
+import { Role } from '../../auth/roles.enum';
 
 @Controller('skills')
 @UseGuards(JwtAuthGuard)
@@ -14,14 +15,14 @@ export class SkillController {
   // Admin routes for managing skills
   @Post()
   @UseGuards(RolesGuard)
-  @Roles('admin')
+  @Roles(Role.ADMIN)
   async createSkill(@Body() createSkillDto: CreateSkillDto) {
     return await this.skillService.createSkill(createSkillDto);
   }
 
   @Put(':id')
   @UseGuards(RolesGuard)
-  @Roles('admin')
+  @Roles(Role.ADMIN)
   async updateSkill(
     @Param('id') id: string,
     @Body() updateSkillDto: UpdateSkillDto,
@@ -55,7 +56,7 @@ export class SkillController {
   // Skill categories
   @Post('categories')
   @UseGuards(RolesGuard)
-  @Roles('admin')
+  @Roles(Role.ADMIN)
   async createCategory(@Body() dto: CreateSkillCategoryDto) {
     return await this.skillService.createCategory(dto);
   }

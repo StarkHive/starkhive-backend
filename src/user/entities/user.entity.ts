@@ -1,9 +1,9 @@
-// src/user/entities/user.entity.ts
 import {
   IsBoolean,
   IsDate,
   IsEmail,
   IsNotEmpty,
+  IsOptional,
   IsString,
   Length,
 } from 'class-validator';
@@ -28,17 +28,26 @@ import { Content } from '../../content/entities/content.entity';
 import { Connection } from '../../connection/entities/connection.entity';
 import { ConnectionNotification } from '../../notifications/entities/connection-notification.entity';
 import { Reputation } from '../../reputation/Reputation.entity';
+
 import { UserSkill } from '../../skills/entities/skill.entity';
+import { Reputation } from '@src/reputation/Reputation.entity';
+import { Report } from '@src/reports/report.entity';
+import { UserSession } from '@src/user-session/entities/user-session.entity';
+import { Referral } from '../../referral/referral.entity';
 
 @Entity('users')
 @Index(['username', 'email'])
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
-  @OneToOne(() => Reputation, (reputation) => reputation.user, { cascade: true })
+
+  @OneToOne(() => Reputation, (reputation) => reputation.user, {
+    cascade: true,
+  })
   reputation: Reputation;
 
   @Column({ unique: true, nullable: true })
+  @IsOptional()
   @Length(3, 20)
   username?: string;
 
@@ -47,13 +56,13 @@ export class User {
   @IsEmail()
   email: string;
 
-  @Column()
-  @IsNotEmpty()
-  @IsEmail()
+  @Column({ unique: true, nullable: true })
+  @IsOptional()
+  @IsString()
   password: string;
 
   @Column({ unique: true, nullable: true })
-  @IsNotEmpty()
+  @IsOptional()
   walletAddress?: string;
 
   @OneToMany(() => Contract, (contract) => contract.user)
@@ -64,16 +73,19 @@ export class User {
 
   @OneToMany(() => Post, (post) => post.author)
   posts: Post[];
+
   @OneToMany(() => NotificationSettings, (notification) => notification.user)
   notificationSettings: NotificationSettings[];
 
   @IsBoolean()
+  @Column({ nullable: true })
   isEmailVerified: boolean;
 
   @IsString()
+  @Column({ nullable: true })
   emailTokenVerification?: string;
 
-  @IsBoolean()
+  @IsString()
   resetToken: string;
 
   @IsDate()
@@ -86,6 +98,7 @@ export class User {
   updatedAt?: Date;
 
   @OneToMany(() => Content, (content) => content.creator) // Ensure this matches the Content relationship
+
   content: Content[];
 
   @OneToMany(() => UserSkill, (userSkill) => userSkill.user)
@@ -93,6 +106,28 @@ export class User {
 
   @OneToOne(() => FreelancerProfile, (freelancerProfile) => freelancerProfile.user, { cascade: true })
   freelancerProfile: FreelancerProfile;
+
+  // OAuth fields
+  @Column({ nullable: true })
+  googleId?: string;
+
+  @Column({ nullable: true })
+  provider?: string;
+
+  @Column({ nullable: true })
+  name?: string;
+
+  @Column({ nullable: true })
+  githubId?: string;
+
+  @Column({ nullable: true })
+  linkedinId?: string;
+
+  @OneToMany(() => AuditLog, (auditLog) => auditLog.user)
+  auditLogs: AuditLog[];
+
+  @Column({ nullable: true })
+  connectionPrivacy?: string;
 
   @OneToMany(() => Connection, (connection) => connection.requester)
   sentConnections: Connection[];
@@ -103,18 +138,23 @@ export class User {
   @OneToMany(
     () => ConnectionNotification,
     (notification) => notification.user,
-    {
-      cascade: true,
-    },
+    { cascade: true },
   )
   notifications: Notification[];
 
-  @Column({ default: 'public' })
-  connectionPrivacy: string;
+  @Column({ default: false })
+  mfaEnabled: boolean;
 
-  @OneToMany(() => AuditLog, (auditLog) => auditLog.user)
-  auditLogs: AuditLog[];
+  @Column({ type: 'varchar', nullable: true })
+  mfaSecret: string | null;
 
   @OneToMany(() => Report, (report) => report.reporter)
   reports: Report[];
+
+
+  @OneToMany(() => UserSession, (session) => session.user)
+  sessions: UserSession[];
+
+  @OneToMany(() => Referral, (referral) => referral.referrer)
+  referrals: Referral[];
 }

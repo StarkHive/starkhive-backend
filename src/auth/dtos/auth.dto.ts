@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsString } from "class-validator";
+import { IsEmail, IsNotEmpty, IsString, IsOptional } from "class-validator";
 
 export class VerifyEmailDto{
   @IsString()
@@ -13,6 +13,9 @@ export class LoginDto{
     @IsString()
     password: string
 
+    @IsString()
+    @IsOptional()
+    mfaToken?: string
 }
 
 export class resetPasswordDTO {

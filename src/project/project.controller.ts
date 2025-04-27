@@ -26,11 +26,12 @@ import { UpdateFileAttachmentDto } from './dto/update-file-attachment.dto';
 import { CreateTimeLogDto } from './dto/create-time-log.dto';
 import { UpdateTimeLogDto } from './dto/update-time-log.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CacheService } from "@src/cache/cache.service";
 
 @Controller('projects')
 @UseGuards(JwtAuthGuard)
 export class ProjectController {
-  constructor(private readonly projectService: ProjectService) {}
+  constructor(private readonly projectService: ProjectService, private cacheManager: CacheService) {}
 
   // Project endpoints
   @Post()
@@ -39,29 +40,43 @@ export class ProjectController {
   }
 
   @Get()
-  findAllProjects(
+  async findAllProjects(
     @Query('status') status?: string,
     @Query('clientId') clientId?: string,
     @Query('projectManagerId') projectManagerId?: string,
   ) {
-    return this.projectService.findAllProjects(status, clientId, projectManagerId);
+    const cachedProjects = await this.cacheManager.get(`projects:all:${status}:${clientId}:${projectManagerId}`, 'ProjectService');
+    if (cachedProjects) {
+      return cachedProjects;
+    }
+    const projects = await this.projectService.findAllProjects(status, clientId, projectManagerId);
+    await this.cacheManager.set(`projects:all:${status}:${clientId}:${projectManagerId}`, projects);
+    return projects;
   }
 
   @Get(':id')
-  findProjectById(@Param('id') id: string) {
-    return this.projectService.findProjectById(id);
+  async findProjectById(@Param('id') id: string) {
+    const cachedProject = await this.cacheManager.get(`projects:${id}`, 'ProjectService');
+    if (cachedProject) {
+      return cachedProject;
+    }
+    const project = await this.projectService.findProjectById(id);
+    await this.cacheManager.set(`project:${id}`, project);
+    return project;
   }
 
   @Patch(':id')
-  updateProject(
+  async updateProject(
     @Param('id') id: string,
     @Body() updateProjectDto: UpdateProjectDto,
   ) {
+    await this.cacheManager.del(`project:${id}`);
     return this.projectService.updateProject(id, updateProjectDto);
   }
 
   @Delete(':id')
-  removeProject(@Param('id') id: string) {
+  async removeProject(@Param('id') id: string) {
+    await this.cacheManager.del(`project:${id}`);
     return this.projectService.removeProject(id);
   }
 
@@ -72,8 +87,14 @@ export class ProjectController {
   }
 
   @Get('milestones/:id')
-  findMilestoneById(@Param('id') id: string) {
-    return this.projectService.findMilestoneById(id);
+  async findMilestoneById(@Param('id') id: string) {
+    const cachedMilestone = await this.cacheManager.get(`projects:milestones:${id}`, 'ProjectService');
+    if (cachedMilestone) {
+      return cachedMilestone;
+    }
+    const milestone = await this.projectService.findMilestoneById(id);
+    await this.cacheManager.set(`projects:milestones:${id}`, milestone);
+    return milestone;
   }
 
   @Get(':projectId/milestones')
@@ -82,15 +103,17 @@ export class ProjectController {
   }
 
   @Patch('milestones/:id')
-  updateMilestone(
+  async updateMilestone(
     @Param('id') id: string,
     @Body() updateMilestoneDto: UpdateMilestoneDto,
   ) {
+    await this.cacheManager.del(`projects:milestones:${id}`);
     return this.projectService.updateMilestone(id, updateMilestoneDto);
   }
 
   @Delete('milestones/:id')
-  removeMilestone(@Param('id') id: string) {
+  async removeMilestone(@Param('id') id: string) {
+    await this.cacheManager.del(`projects:milestones:${id}`);
     return this.projectService.removeMilestone(id);
   }
 
@@ -101,8 +124,14 @@ export class ProjectController {
   }
 
   @Get('deliverables/:id')
-  findDeliverableById(@Param('id') id: string) {
-    return this.projectService.findDeliverableById(id);
+  async findDeliverableById(@Param('id') id: string) {
+    const cachedDeliverable = await this.cacheManager.get(`projects:deliverables:${id}`, 'ProjectService');
+    if (cachedDeliverable) {
+      return cachedDeliverable;
+    }
+    const deliverable = await this.projectService.findDeliverableById(id);
+    await this.cacheManager.set(`projects:deliverables:${id}`, deliverable);
+    return deliverable;
   }
 
   @Get(':projectId/deliverables')
@@ -116,15 +145,17 @@ export class ProjectController {
   }
 
   @Patch('deliverables/:id')
-  updateDeliverable(
+  async updateDeliverable(
     @Param('id') id: string,
     @Body() updateDeliverableDto: UpdateDeliverableDto,
   ) {
+    await this.cacheManager.del(`projects:deliverables:${id}`);
     return this.projectService.updateDeliverable(id, updateDeliverableDto);
   }
 
   @Delete('deliverables/:id')
-  removeDeliverable(@Param('id') id: string) {
+  async removeDeliverable(@Param('id') id: string) {
+    await this.cacheManager.del(`projects:deliverables:${id}`);
     return this.projectService.removeDeliverable(id);
   }
 
@@ -135,8 +166,14 @@ export class ProjectController {
   }
 
   @Get('tasks/:id')
-  findTaskById(@Param('id') id: string) {
-    return this.projectService.findTaskById(id);
+  async findTaskById(@Param('id') id: string) {
+    const cachedTask = await this.cacheManager.get(`projects:tasks:${id}`, 'ProjectService');
+    if (cachedTask) {
+      return cachedTask;
+    }
+    const task = await this.projectService.findTaskById(id);
+    await this.cacheManager.set(`projects:tasks:${id}`, task);
+    return task;
   }
 
   @Get(':projectId/tasks')
@@ -153,15 +190,17 @@ export class ProjectController {
   }
 
   @Patch('tasks/:id')
-  updateTask(
+  async updateTask(
     @Param('id') id: string,
     @Body() updateTaskDto: UpdateTaskDto,
   ) {
+    await this.cacheManager.del(`projects:tasks:${id}`);
     return this.projectService.updateTask(id, updateTaskDto);
   }
 
   @Delete('tasks/:id')
-  removeTask(@Param('id') id: string) {
+  async removeTask(@Param('id') id: string) {
+    await this.cacheManager.del(`projects:tasks:${id}`);
     return this.projectService.removeTask(id);
   }
 
@@ -176,8 +215,14 @@ export class ProjectController {
   }
 
   @Get('files/:id')
-  findFileById(@Param('id') id: string) {
-    return this.projectService.findFileById(id);
+  async findFileById(@Param('id') id: string) {
+    const cachedFile = await this.cacheManager.get(`projects:files:${id}`, 'ProjectService');
+    if (cachedFile) {
+      return cachedFile;
+    }
+    const file = await this.projectService.findFileById(id);
+    await this.cacheManager.set(`projects:files:${id}`, file);
+    return file;
   }
 
   @Get(':projectId/files')
@@ -196,15 +241,17 @@ export class ProjectController {
   }
 
   @Patch('files/:id')
-  updateFile(
+  async updateFile(
     @Param('id') id: string,
     @Body() updateFileAttachmentDto: UpdateFileAttachmentDto,
   ) {
+    await this.cacheManager.del(`projects:files:${id}`);
     return this.projectService.updateFile(id, updateFileAttachmentDto);
   }
 
   @Delete('files/:id')
-  removeFile(@Param('id') id: string) {
+  async removeFile(@Param('id') id: string) {
+    await this.cacheManager.del(`projects:files:${id}`);
     return this.projectService.removeFile(id);
   }
 
@@ -215,8 +262,15 @@ export class ProjectController {
   }
 
   @Get('time-logs/:id')
-  findTimeLogById(@Param('id') id: string) {
-    return this.projectService.findTimeLogById(id);
+  async findTimeLogById(@Param('id') id: string) {
+    const cachedTimeLogs = await this.cacheManager.get(`projects:time-logs:${id}`, 'ProjectService');
+    if (cachedTimeLogs) {
+      return cachedTimeLogs;
+    }
+
+    const timeLogs = await this.projectService.findTimeLogById(id);
+    await this.cacheManager.set(`projects:time-logs:${id}`, timeLogs);
+    return timeLogs;
   }
 
   @Get(':projectId/time-logs')
@@ -243,15 +297,17 @@ export class ProjectController {
   }
 
   @Patch('time-logs/:id')
-  updateTimeLog(
+  async updateTimeLog(
     @Param('id') id: string,
     @Body() updateTimeLogDto: UpdateTimeLogDto,
   ) {
+    await this.cacheManager.del(`projects:time-logs:${id}`);
     return this.projectService.updateTimeLog(id, updateTimeLogDto);
   }
 
   @Delete('time-logs/:id')
-  removeTimeLog(@Param('id') id: string) {
+  async removeTimeLog(@Param('id') id: string) {
+    await this.cacheManager.del(`projects:time-logs:${id}`);
     return this.projectService.removeTimeLog(id);
   }
 
