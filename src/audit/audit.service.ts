@@ -22,10 +22,6 @@ export class AuditService {
     private eventEmitter: EventEmitter2,
   ) {}
 
-  async createLog(data: Partial<AuditLog>): Promise<AuditLog> {
-    return this.createAuditLog(data);
-  }
-
   async createAuditLog(data: Partial<AuditLog>): Promise<AuditLog> {
     try {
       if (!data.action) {
