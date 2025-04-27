@@ -2,7 +2,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne } from 'typeorm';
 import { ContentStatus } from '../enums/content-status.enum';
 import { ContentType } from '../enums/content-type.enum';
-import { User } from '@src/user/entities/user.entity';
+import { User } from '../../user/entities/user.entity';
 
 @Entity('content')
 export class Content {

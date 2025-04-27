@@ -1,4 +1,3 @@
-
 // 42. Create ReportingService (src/reporting/reporting.service.ts)
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -7,7 +6,7 @@ import { Report } from './entities/report.entity';
 import { ReviewReportDto } from './dto/review-report.dto';
 
 import { ReportType } from './enums/report-type.enum';
-import { ReportStatus } from './enums/report-status.enums';
+import { ReportStatus } from './enums/report-status.enum';
 
 @Injectable()
 export class ReportingService {

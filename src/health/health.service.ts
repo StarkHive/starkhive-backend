@@ -5,8 +5,8 @@ import { InjectConnection } from '@nestjs/typeorm';
 import { Connection } from 'typeorm';
 import * as os from 'os';
 
-import { MetricType } from '@src/analytics/enums/metric-types.enum';
-import { AnalyticsService } from '@src/analytics/analytic.service';
+import { MetricType } from '../analytics/enums/metric-types.enum';
+import { AnalyticsService } from '../analytics/analytic.service';
 
 
 @Injectable()

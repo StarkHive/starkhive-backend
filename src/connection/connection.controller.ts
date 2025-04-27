@@ -10,7 +10,8 @@ import {
 } from '@nestjs/common';
 import { ConnectionService } from './connection.service';
 import { Connection } from './entities/connection.entity';
-import { User } from '@src/user/entities/user.entity';
+import { User } from '../user/entities/user.entity';
+
 import { CacheService } from "@src/cache/cache.service";
 
 @Controller('connections')

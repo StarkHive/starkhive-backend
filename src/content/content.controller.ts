@@ -65,7 +65,7 @@ export class ContentController {
     await this.cacheManager.del(`content:${id}`);
     const result = await this.contentService.moderate(id, moderateContentDto, user.id);
     
-    await this.auditService.createLog({
+    await this.auditService.createAuditLog({
       action: 'content_moderated',
       resourceType: 'content',
       resourceId: id,

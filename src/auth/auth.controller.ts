@@ -13,7 +13,7 @@ import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { WalletAddress } from './decorators/wallet-address.decorator';
-import { CreateUserDto } from '@src/user/dto/create-user.dto';
+import { CreateUserDto } from '../user/dto/create-user.dto';
 import { LoginDto } from './dtos/auth.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { OAuthGuard } from './guards/oauth.guard';
