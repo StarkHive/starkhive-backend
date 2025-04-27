@@ -13,10 +13,11 @@ import {
 import { JobPostingsService } from './job-postings.service';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
+import { CacheService } from "@src/cache/cache.service";
 
 @Controller('job-postings')
 export class JobPostingsController {
-  constructor(private readonly jobPostingsService: JobPostingsService) {}
+  constructor(private readonly jobPostingsService: JobPostingsService, private cacheManager: CacheService) {}
 
   @Get()
   findAll(
@@ -40,8 +41,14 @@ export class JobPostingsController {
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.jobPostingsService.findOne(id);
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    const cachedJobPosting = await this.cacheManager.get(`job-postings:${id}`, 'JobPostingsService');
+    if (cachedJobPosting) {
+      return cachedJobPosting;
+    }
+    const jobPosting = await this.jobPostingsService.findOne(id);
+    await this.cacheManager.set(`job-postings:${id}`, jobPosting);
+    return jobPosting;
   }
 
   @Post()
@@ -50,15 +57,17 @@ export class JobPostingsController {
   }
 
   @Patch(':id')
-  update(
+  async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateJobDto: UpdateJobDto,
   ) {
+    await this.cacheManager.del(`job-postings:${id}`);
     return this.jobPostingsService.update(id, updateJobDto);
   }
 
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
+  async remove(@Param('id', ParseIntPipe) id: number) {
+    await this.cacheManager.del(`job-postings:${id}`);
     return this.jobPostingsService.remove(id);
   }
 }

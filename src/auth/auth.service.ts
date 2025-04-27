@@ -10,8 +10,8 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateUserDto } from '@src/user/dto/create-user.dto';
-import { User } from '@src/user/entities/user.entity';
+import { CreateUserDto } from '../user/dto/create-user.dto';
+import { User } from '../user/entities/user.entity';
 import { hash } from 'starknet';
 import { Repository } from 'typeorm';
 import * as dotenv from 'dotenv';
@@ -304,6 +304,44 @@ export class AuthService {
     } catch (error) {
       console.error('Reset Password Error:', error);
       throw new InternalServerErrorException('Failed to reset password');
+    }
+  }
+
+  async findOrCreateFromOAuth({
+    email,
+    provider,
+    providerId,
+    name,
+  }: {
+    email: string;
+    provider: string;
+    providerId: string;
+    name: string;
+  }): Promise<User> {
+    try {
+      let user = await this.userRepository.findOne({ where: { email } });
+
+      if (user) {
+        // Update existing user with OAuth provider details
+        (user as any)[`${provider}Id`] = providerId; // Use type assertion for dynamic property
+        user.provider = provider;
+        if (!user.name) user.name = name;
+      } else {
+        // Create new user
+        user = this.userRepository.create({
+          email,
+          [`${provider}Id`]: providerId, // Use type assertion for dynamic property
+          provider,
+          name,
+          isEmailVerified: true, // OAuth users are considered verified
+        } as Partial<User>); // Cast to Partial<User> to satisfy TypeScript
+      }
+
+      await this.userRepository.save(user);
+      return user;
+    } catch (error) {
+      console.error('OAuth User Creation Error:', error);
+      throw new InternalServerErrorException('Failed to create or update user');
     }
   }
 }

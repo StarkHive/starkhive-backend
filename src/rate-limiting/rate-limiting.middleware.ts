@@ -15,27 +15,35 @@ export class RateLimitingMiddleware implements NestMiddleware {
     // Get the real IP, fallback to a default if not available
     const ip = req.ip || req.socket.remoteAddress || '0.0.0.0';
     const endpoint = req.path;
-    const user = (req as any).user; // From JWT auth middleware
+    // Retrieve user data from previous authentication middleware, if available
+    const user = (req as any).user || { id: null, isPremium: false };
 
     try {
-      const result = await this.rateLimitingService.checkRateLimit(
+      const {
+        allowed,
+        limit,
+        remaining,
+        resetTime,
+      } = await this.rateLimitingService.checkRateLimit(
         ip,
         endpoint,
-        user?.id,
-        user?.isPremium,
+        user.id,
+        user.isPremium,
       );
 
-      // Set rate limit headers
-      res.header('X-RateLimit-Limit', result.remaining.toString());
-      res.header('X-RateLimit-Remaining', result.remaining.toString());
-      res.header('X-RateLimit-Reset', result.resetTime.toString());
+      // Set rate limit headers with clear names
+      res.set({
+        'X-RateLimit-Limit': limit.toString(),
+        'X-RateLimit-Remaining': remaining.toString(),
+        'X-RateLimit-Reset': resetTime.toString(),
+      });
 
-      if (!result.allowed) {
+      if (!allowed) {
         throw new HttpException(
           {
             statusCode: HttpStatus.TOO_MANY_REQUESTS,
             message: 'Rate limit exceeded',
-            retryAfter: Math.ceil(result.resetTime / 1000), // Convert to seconds
+            retryAfter: Math.ceil(resetTime / 1000), // Convert milliseconds to seconds
           },
           HttpStatus.TOO_MANY_REQUESTS,
         );
@@ -43,13 +51,16 @@ export class RateLimitingMiddleware implements NestMiddleware {
 
       next();
     } catch (error) {
+      // If it's an HTTP exception, pass it along
       if (error instanceof HttpException) {
-        throw error;
+        return next(error);
       }
-      
-      // Log unexpected errors and continue
-      console.error('Rate limiting error:', error);
-      next();
+      // Log unexpected errors with context
+      console.error(
+        `Rate limiting error for IP: ${ip} on endpoint: ${endpoint} - `,
+        error,
+      );
+      next(error);
     }
   }
 }

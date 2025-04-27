@@ -15,10 +15,11 @@ import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { CreateReactionDto } from './dto/create-reaction.dto';
 import { JwtAuthGuard } from '@src/auth/guards/jwt-auth.guard';
+import { CacheService } from "@src/cache/cache.service";
 
 @Controller('posts')
 export class PostController {
-  constructor(private readonly postService: PostService) {}
+  constructor(private readonly postService: PostService, private cacheManager: CacheService) {}
 
   @Post()
   @UseGuards(JwtAuthGuard)
@@ -33,19 +34,28 @@ export class PostController {
     @Param('id') id: string,
     @Body() updatePostDto: UpdatePostDto,
   ) {
+    await this.cacheManager.del(`posts:${id}`);
     return this.postService.updatePost(req.user.id, id, updatePostDto);
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
   async delete(@Req() req: any, @Param('id') id: string) {
+    await this.cacheManager.del(`posts:${id}`);
     return this.postService.deletePost(req.user.id, id);
   }
 
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   async get(@Req() req: any, @Param('id') id: string) {
-    return this.postService.getPost(req.user.id, id);
+    const cachedPost = await this.cacheManager.get(`posts:${id}`, 'PostService');
+    if (cachedPost) {
+      return cachedPost;
+    }
+
+    const post = await this.postService.getPost(req.user.id, id);
+    await this.cacheManager.set(`posts:${id}`, post)
+    return post;
   }
 
   @Get('activity-feed')

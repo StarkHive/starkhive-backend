@@ -24,9 +24,10 @@
     "baseUrl": "./",
     "paths": {
       "@src/*": ["src/*"],
-      "@tests/*": ["tests/*"]
+      "@tests/*": ["tests/*"],
+      "@auth/*": ["src/auth/*"]
     }
   },
-  "include": ["src", "tests"],
+  "include": ["src", "tests", "auth.guard.ts"],
   "exclude": ["node_modules", "dist"]
 }

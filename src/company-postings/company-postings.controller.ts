@@ -11,15 +11,17 @@ import {
 import { CompanyPostingsService } from './company-postings.service';
 import { CreateCompanyPostingDto } from './dto/create-company-posting.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
+import { CacheService } from "@src/cache/cache.service";
 
 @Controller('company-postings')
 export class CompanyPostingsController {
   constructor(
     private readonly companyPostingsService: CompanyPostingsService,
+    private cacheManager: CacheService
   ) {}
 
   @Get()
-  findAll(
+  async findAll(
     @Query('name') name?: string,
     @Query('location') location?: string,
     @Query('industry') industry?: string,
@@ -30,7 +32,11 @@ export class CompanyPostingsController {
     @Query('sortBy') sortBy?: string,
     @Query('sortOrder') sortOrder?: 'ASC' | 'DESC',
   ) {
-    return this.companyPostingsService.findAll(
+    const cachedCompanyPostings = await this.cacheManager.get(`company-postings:all`, 'CompanyPostingsService');
+    if (cachedCompanyPostings) {
+      return cachedCompanyPostings;
+    }
+    const companyPostings = await this.companyPostingsService.findAll(
       Number(page),
       Number(limit),
       name,
@@ -41,11 +47,19 @@ export class CompanyPostingsController {
       sortBy,
       sortOrder,
     );
+    await this.cacheManager.set(`company-postings:all`, companyPostings);
+    return companyPostings;
   }
 
   @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.companyPostingsService.findOne(Number(id));
+  async findOne(@Param('id') id: number) {
+    const cachedCompanyPosting = await this.cacheManager.get(`company-postings:${id}`, 'CompanyPostingsService');
+    if (cachedCompanyPosting) {
+      return cachedCompanyPosting;
+    }
+    const companyPosting = await this.companyPostingsService.findOne(Number(id));
+    await this.cacheManager.set(`company-postings:${id}`, companyPosting);
+    return companyPosting;
   }
 
   @Post()
@@ -54,12 +68,14 @@ export class CompanyPostingsController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: number, @Body() updateCompanyDto: UpdateCompanyDto) {
-    return this.companyPostingsService.update(Number(id), updateCompanyDto);
+  async update(@Param('id') id: number, @Body() updateCompanyDto: UpdateCompanyDto) {
+    await this.cacheManager.del(`company-postings:${id}`);
+    return await this.companyPostingsService.update(Number(id), updateCompanyDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: number) {
-    return this.companyPostingsService.remove(Number(id));
+  async remove(@Param('id') id: number) {
+    await this.cacheManager.del(`company-postings:${id}`);
+    return await this.companyPostingsService.remove(Number(id));
   }
 }

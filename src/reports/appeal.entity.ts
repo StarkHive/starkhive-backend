@@ -1,7 +1,7 @@
 // src/reports/entities/appeal.entity.ts
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne } from 'typeorm';
 import { Report } from './report.entity';
-import { User } from '@src/user/entities/user.entity';
+import { User } from '../user/entities/user.entity';
 
 @Entity()
 export class Appeal {

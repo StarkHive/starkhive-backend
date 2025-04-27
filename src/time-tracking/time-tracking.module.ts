@@ -4,7 +4,7 @@ import { TimeTrackingController } from './time-tracking.controller';
 import { TimeTrackingService } from './time-tracking.service';
 import { TimeEntry } from './entities/time-entry.entity';
 import { Project } from '../project/entities/project.entity';
-import { PaymentModule } from '@src/payment/payment.module';
+import { PaymentModule } from '../payment/payment.module';
 
 @Module({
   imports: [PaymentModule, TypeOrmModule.forFeature([TimeEntry, Project])],

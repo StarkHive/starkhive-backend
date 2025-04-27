@@ -19,6 +19,7 @@ export class PermissionService {
     ],
     [Role.FREELANCER]: [Permission.VIEW_PROJECT],
     [Role.USER]: [Permission.VIEW_PROJECT], // Adding USER role with basic permissions
+    [Role.SECURITY_AUDITOR]: [Permission.VIEW_PROJECT], 
   };
 
   getPermissionsForRole(role: Role): Permission[] {

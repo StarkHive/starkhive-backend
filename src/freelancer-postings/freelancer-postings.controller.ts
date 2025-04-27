@@ -11,11 +11,13 @@ import {
 import { FreelancerPostingsService } from './freelancer-postings.service';
 import { CreateFreelancerDto } from './dto/create-freelancer.dto';
 import { UpdateFreelancerDto } from './dto/update-freelancer.dto';
+import { CacheService } from "@src/cache/cache.service";
 
 @Controller('freelancer-postings')
 export class FreelancerPostingsController {
   constructor(
     private readonly freelancerPostingsService: FreelancerPostingsService,
+    private cacheManager: CacheService
   ) {}
 
   @Get()
@@ -46,8 +48,14 @@ export class FreelancerPostingsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.freelancerPostingsService.findOne(Number(id));
+  async findOne(@Param('id') id: number) {
+    const cachedFreelancerPosting = await this.cacheManager.get(`freelancer-postings:${id}`, 'FreelancerPostingsService');
+    if (cachedFreelancerPosting) {
+      return cachedFreelancerPosting;
+    }
+    const freelancerPosting = await this.freelancerPostingsService.findOne(Number(id));
+    await this.cacheManager.set(`freelancer-postings:${id}`, freelancerPosting);
+    return freelancerPosting;
   }
 
   @Post()
@@ -56,10 +64,11 @@ export class FreelancerPostingsController {
   }
 
   @Patch(':id')
-  update(
+  async update(
     @Param('id') id: number,
     @Body() updateFreelancerDto: UpdateFreelancerDto,
   ) {
+    await this.cacheManager.del(`freelancer-postings:${id}`);
     return this.freelancerPostingsService.update(
       Number(id),
       updateFreelancerDto,
@@ -67,7 +76,8 @@ export class FreelancerPostingsController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: number) {
+  async remove(@Param('id') id: number) {
+    await this.cacheManager.del(`freelancer-postings:${id}`);
     return this.freelancerPostingsService.remove(Number(id));
   }
 }
