@@ -53,6 +53,7 @@ import { ValidationModule } from './validation/validation.module';
 import { WatchlistModule } from './watchlist/watchlist.module';
 import { RecruiterModule } from './recruiter/recruiter.module';
 import * as dotenv from 'dotenv';
+import { JobTagsModule } from './job-tags/job-tags.module';
 
 dotenv.config();
 
@@ -125,12 +126,9 @@ dotenv.config();
     RecommendationsModule,
     WatchlistModule,
     RecruiterModule,
+    JobTagsModule,
   ],
-  providers: [
-    RolesGuard,
-    PermissionGuard,
-    PermissionService,
-  ],
+  providers: [RolesGuard, PermissionGuard, PermissionService],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
