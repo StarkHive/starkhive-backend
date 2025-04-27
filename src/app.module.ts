@@ -49,6 +49,7 @@ import { RateLimitingMiddleware } from './rate-limiting/rate-limiting.middleware
 import { JobAnalyticsModule } from './job-analytics/job-analytics.module';
 import { SseModule } from './sse/sse.module';
 import { RecommendationsModule } from './recommendations/recommendations.module';
+import { MetricsModule } from './metrics/metrics.module';
 import { ValidationModule } from './validation/validation.module';
 import { WatchlistModule } from './watchlist/watchlist.module';
 import { RecruiterModule } from './recruiter/recruiter.module';
@@ -123,6 +124,7 @@ dotenv.config();
     CacheModule,
     JobAnalyticsModule,
     SseModule,
+    MetricsModule,
     RecommendationsModule,
     WatchlistModule,
     RecruiterModule,
