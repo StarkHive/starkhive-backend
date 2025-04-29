@@ -55,6 +55,8 @@ import { WatchlistModule } from './watchlist/watchlist.module';
 import { RecruiterModule } from './recruiter/recruiter.module';
 import * as dotenv from 'dotenv';
 import { JobTagsModule } from './job-tags/job-tags.module';
+import { RatingsModule } from './rating/rating.module';
+
 
 dotenv.config();
 
@@ -129,6 +131,9 @@ dotenv.config();
     WatchlistModule,
     RecruiterModule,
     JobTagsModule,
+    
+    RatingsModule,
+    
   ],
   providers: [RolesGuard, PermissionGuard, PermissionService],
 })

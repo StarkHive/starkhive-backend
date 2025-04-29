@@ -30,8 +30,8 @@ import { ConnectionNotification } from '../../notifications/entities/connection-
 import { Reputation } from '../../reputation/Reputation.entity';
 
 import { UserSkill } from '../../skills/entities/skill.entity';
-import { Reputation } from '@src/reputation/Reputation.entity';
-import { Report } from '@src/reports/report.entity';
+// import { Reputation } from '@src/reputation/Reputation.entity';
+// import { Report } from '@src/reports/report.entity';
 import { UserSession } from '@src/user-session/entities/user-session.entity';
 import { Referral } from '../../referral/referral.entity';
 
