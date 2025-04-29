@@ -51,7 +51,7 @@ export class Dispute {
   @Column({ type: 'timestamp', nullable: true })
   votingDeadline: Date;
 
-  @OneToMany(() => DisputeVote, vote => vote.dispute)
+  @OneToMany(() => DisputeVote, vote => vote.dispute, { cascade: ['remove'], onDelete: 'CASCADE' })
   votes: DisputeVote[];
 
   @Column({ type: 'text', nullable: true })
