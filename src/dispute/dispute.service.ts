@@ -23,22 +23,49 @@ export class DisputeService {
   ) {}
 
   async createDispute(createDisputeDto: CreateDisputeDto, creatorId: string): Promise<Dispute> {
-    const dispute = this.disputeRepository.create({
-      ...createDisputeDto,
-      creatorId,
-      status: DisputeStatus.PENDING,
-      outcome: DisputeOutcome.PENDING,
-    });
-    
-    const savedDispute = await this.disputeRepository.save(dispute);
-    await this.assignJurors(savedDispute.id);
-    return savedDispute;
-  }
-
-  async assignJurors(disputeId: string): Promise<void> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
+
+    try {
+      const dispute = this.disputeRepository.create({
+        ...createDisputeDto,
+        creatorId,
+        status: DisputeStatus.PENDING,
+        outcome: DisputeOutcome.PENDING,
+      });
+      
+      const savedDispute = await queryRunner.manager.save(dispute);
+      await this.assignJurors(savedDispute.id, queryRunner);
+      
+      // Get the managed entity with all relations before committing
+      const populatedDispute = await queryRunner.manager.findOne(Dispute, {
+        where: { id: savedDispute.id },
+        relations: ['votes', 'votes.juror', 'creator'],
+      });
+      
+      if (!populatedDispute) {
+        throw new NotFoundException('Created dispute not found');
+      }
+      
+      await queryRunner.commitTransaction();
+      return populatedDispute;
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async assignJurors(disputeId: string, existingQueryRunner?: any): Promise<void> {
+    const queryRunner = existingQueryRunner || this.dataSource.createQueryRunner();
+    const shouldManageTransaction = !existingQueryRunner;
+
+    if (shouldManageTransaction) {
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+    }
 
     try {
       const dispute = await this.disputeRepository.findOne({ where: { id: disputeId } });
@@ -80,12 +107,18 @@ export class DisputeService {
         }, queryRunner.manager)
       ));
 
-      await queryRunner.commitTransaction();
+      if (shouldManageTransaction) {
+        await queryRunner.commitTransaction();
+      }
     } catch (err) {
-      await queryRunner.rollbackTransaction();
+      if (shouldManageTransaction) {
+        await queryRunner.rollbackTransaction();
+      }
       throw err;
     } finally {
-      await queryRunner.release();
+      if (shouldManageTransaction) {
+        await queryRunner.release();
+      }
     }
   }
 
@@ -193,13 +226,13 @@ export class DisputeService {
 
     await repository.save(dispute);
 
-    // Notify creator of outcome
+    // Notify creator of outcome - use the transaction if available
     await this.notificationsService.create({
       userId: dispute.creatorId,
       type: 'DISPUTE_RESOLVED',
       message: `Dispute Resolution: Your dispute "${dispute.title}" has been resolved with outcome: ${dispute.outcome}`,
       data: { disputeId: dispute.id, outcome: dispute.outcome },
-    });
+    }, queryRunner?.manager);
   }
 
   async getDispute(id: string): Promise<Dispute> {
