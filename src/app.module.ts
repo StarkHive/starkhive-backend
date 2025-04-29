@@ -55,6 +55,7 @@ import { WatchlistModule } from './watchlist/watchlist.module';
 import { RecruiterModule } from './recruiter/recruiter.module';
 import * as dotenv from 'dotenv';
 import { JobTagsModule } from './job-tags/job-tags.module';
+import { DisputeModule } from './dispute/dispute.module';
 
 dotenv.config();
 
@@ -81,6 +82,11 @@ dotenv.config();
         database: configService.get<string>('DATABASE_NAME'),
         synchronize: configService.get<string>('NODE_ENV') !== 'production',
         autoLoadEntities: true,
+        migrations: [
+          'src/user/migrations/*.ts',
+          'src/dispute/migrations/*.ts'
+        ],
+        migrationsRun: true,
       }),
     }),
     ValidationModule,
@@ -129,6 +135,7 @@ dotenv.config();
     WatchlistModule,
     RecruiterModule,
     JobTagsModule,
+    DisputeModule,
   ],
   providers: [RolesGuard, PermissionGuard, PermissionService],
 })

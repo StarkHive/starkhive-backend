@@ -28,10 +28,8 @@ import { Content } from '../../content/entities/content.entity';
 import { Connection } from '../../connection/entities/connection.entity';
 import { ConnectionNotification } from '../../notifications/entities/connection-notification.entity';
 import { Reputation } from '../../reputation/Reputation.entity';
-
+import { UserRole } from '../enums/user-role.enum';
 import { UserSkill } from '../../skills/entities/skill.entity';
-import { Reputation } from '@src/reputation/Reputation.entity';
-import { Report } from '@src/reports/report.entity';
 import { UserSession } from '@src/user-session/entities/user-session.entity';
 import { Referral } from '../../referral/referral.entity';
 
@@ -45,6 +43,12 @@ export class User {
     cascade: true,
   })
   reputation: Reputation;
+
+  @Column({ type: 'enum', enum: UserRole, array: true, default: [UserRole.USER] })
+  roles: UserRole[];
+
+  @Column({ type: 'float', default: 0 })
+  jurorReputation: number;
 
   @Column({ unique: true, nullable: true })
   @IsOptional()
@@ -97,8 +101,7 @@ export class User {
   @UpdateDateColumn()
   updatedAt?: Date;
 
-  @OneToMany(() => Content, (content) => content.creator) // Ensure this matches the Content relationship
-
+  @OneToMany(() => Content, (content) => content.creator)
   content: Content[];
 
   @OneToMany(() => UserSkill, (userSkill) => userSkill.user)
@@ -150,7 +153,6 @@ export class User {
 
   @OneToMany(() => Report, (report) => report.reporter)
   reports: Report[];
-
 
   @OneToMany(() => UserSession, (session) => session.user)
   sessions: UserSession[];
