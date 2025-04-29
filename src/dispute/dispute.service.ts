@@ -70,14 +70,14 @@ export class DisputeService {
 
       await queryRunner.manager.save(dispute);
 
-      // Create all notifications in parallel
+      // Create all notifications in parallel using the same transaction
       await Promise.all(selectedJurors.map(juror => 
         this.notificationsService.create({
           userId: juror.id,
           type: 'DISPUTE_ASSIGNMENT',
           message: `New Dispute Assignment: You have been selected as a juror for dispute: ${dispute.title}`,
           data: { disputeId: dispute.id },
-        })
+        }, queryRunner.manager)
       ));
 
       await queryRunner.commitTransaction();
