@@ -11,6 +11,9 @@ import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class EndorsementService {
+  getUserEndorsements(userId: string): any {
+    throw new Error('Method not implemented.');
+  }
   constructor(
     private readonly endorsementRepo: EndorsementRepository,
 

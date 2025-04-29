@@ -31,6 +31,9 @@ import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class ProjectService {
+  getUserProjects(userId: string): any {
+    throw new Error('Method not implemented.');
+  }
   constructor(
     @InjectRepository(Project)
     private projectRepository: Repository<Project>,
