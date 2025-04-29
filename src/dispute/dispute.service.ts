@@ -68,8 +68,10 @@ export class DisputeService {
     }
 
     try {
-      const dispute = await this.disputeRepository.findOne({ where: { id: disputeId } });
-      if (!dispute) {
+      const dispute = await queryRunner.manager.getRepository(Dispute).findOne({
+          where: { id: disputeId },
+          lock: { mode: 'pessimistic_write' },
+        });      if (!dispute) {
         throw new NotFoundException('Dispute not found');
       }
 
@@ -151,8 +153,8 @@ export class DisputeService {
       }
 
       // Check if juror has already voted - protected by transaction
-      const existingVote = await this.disputeVoteRepository.findOne({
-        where: { disputeId, jurorId },
+      const existingVote = await queryRunner.manager.getRepository(DisputeVote).findOne({
+                where: { disputeId, jurorId },
       });
 
       if (existingVote) {
@@ -169,7 +171,9 @@ export class DisputeService {
       const savedVote = await queryRunner.manager.save(vote);
 
       // Check if all jurors have voted - protected against multiple finalization
-      const totalVotes = dispute.votes.length + 1;
+      const totalVotes = await queryRunner.manager
+      .getRepository(DisputeVote)
+      .count({ where: { disputeId } });
       if (totalVotes === dispute.assignedJurorIds.length && dispute.status === DisputeStatus.VOTING) {
         await this.finalizeDispute(disputeId, queryRunner);
       }
@@ -234,9 +238,9 @@ export class DisputeService {
       data: { disputeId: dispute.id, outcome: dispute.outcome },
     }, queryRunner?.manager);
   }
-
-  async getDispute(id: string): Promise<Dispute> {
-    const dispute = await this.disputeRepository.findOne({
+  async getDispute(id: string, queryRunner?: any): Promise<Dispute> {
+    const repository = queryRunner?.manager.getRepository(Dispute) || this.disputeRepository;
+    const dispute = await repository.findOne({
       where: { id },
       relations: ['votes', 'votes.juror', 'creator'],
     });
