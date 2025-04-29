@@ -55,6 +55,7 @@ import { WatchlistModule } from './watchlist/watchlist.module';
 import { RecruiterModule } from './recruiter/recruiter.module';
 import * as dotenv from 'dotenv';
 import { JobTagsModule } from './job-tags/job-tags.module';
+import { SchedulerModule } from './scheduler/scheduler.module';
 
 dotenv.config();
 
@@ -83,6 +84,7 @@ dotenv.config();
         autoLoadEntities: true,
       }),
     }),
+    SchedulerModule,
     ValidationModule,
     RateLimitingModule,
     AuthModule,
