@@ -55,6 +55,8 @@ import { WatchlistModule } from './watchlist/watchlist.module';
 import { RecruiterModule } from './recruiter/recruiter.module';
 import * as dotenv from 'dotenv';
 import { JobTagsModule } from './job-tags/job-tags.module';
+import { SchedulerModule } from './scheduler/scheduler.module';
+import { RatingsModule } from './rating/rating.module';
 import { DisputeModule } from './dispute/dispute.module';
 
 dotenv.config();
@@ -89,6 +91,7 @@ dotenv.config();
         migrationsRun: true,
       }),
     }),
+    SchedulerModule,
     ValidationModule,
     RateLimitingModule,
     AuthModule,
@@ -135,6 +138,8 @@ dotenv.config();
     WatchlistModule,
     RecruiterModule,
     JobTagsModule,
+    
+    RatingsModule,
     DisputeModule,
   ],
   providers: [RolesGuard, PermissionGuard, PermissionService],

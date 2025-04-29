@@ -24,7 +24,6 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-
     "@nestjs-modules/mailer": "^2.0.2",
     "@nestjs/bull": "^11.0.2",
     "@nestjs/cache-manager": "^3.0.0",
@@ -45,9 +44,9 @@
     "@types/express-session": "^1.18.1",
     "@types/json2csv": "^5.0.7",
     "@types/pdfmake": "^0.2.11",
-    "@willsoto/nestjs-prometheus": "^6.0.2",
     "@types/redis": "^4.0.10",
     "@types/validator": "^13.12.3",
+    "@willsoto/nestjs-prometheus": "^6.0.2",
     "axios": "^1.8.3",
     "bcryptjs": "^3.0.2",
     "bull": "^4.16.5",
@@ -60,6 +59,7 @@
     "express": "^4.21.2",
     "express-session": "^1.18.1",
     "get-starknet": "^3.0.1",
+    "ics": "^3.8.1",
     "json2csv": "^6.0.0-alpha.2",
     "moment": "^2.30.1",
     "nodemailer": "^6.10.0",
@@ -90,7 +90,7 @@
     "@nestjs/typeorm": "^11.0.0",
     "@types/bcryptjs": "^2.4.2",
     "@types/express": "^5.0.1",
-    "@types/jest": "^29.5.2",
+    "@types/jest": "^29.5.14",
     "@types/multer": "^1.4.12",
     "@types/node": "^20.17.31",
     "@types/nodemailer": "^6.4.17",
