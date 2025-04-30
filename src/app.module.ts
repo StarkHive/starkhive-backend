@@ -18,10 +18,6 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { NotificationSettingsModule } from './notification-settings/notification-settings.module';
 import { FreelancerProfileModule } from './freelancer-profile/freelancer-profile.module';
 import { PostService } from './post/post.service';
-import { MessagesModule } from './messages/messages.module';
-import { ConversationsModule } from './conversations/conversations.module';
-import { WebsocketsModule } from './websockets/websockets.module';
-import { AttachmentsModule } from './attachments/attachments.module';
 import { PostModule } from './post/post.module';
 import { ReportsModule } from './reports/reports.module';
 import { EndorsementModule } from './endorsement/endorsement.module';
@@ -53,10 +49,9 @@ import { UserSessionModule } from './user-session/user-session.module';
 import { CacheModule } from './cache/cache.module';
 import { RateLimitingModule } from './rate-limiting/rate-limiting.module';
 import { RateLimitingMiddleware } from './rate-limiting/rate-limiting.middleware';
-import { PostService } from './post/post.service'; // Ensure this import is included
 import { SseModule } from './sse/sse.module';
-import * as dotenv from 'dotenv';
 import { RecommendationsModule } from './recommendations/recommendations.module';
+import { AvailabilityCalendarModule } from './availability-calendar/availability-calendar.module';
 dotenv.config();
 
 @Module({
@@ -128,6 +123,8 @@ dotenv.config();
     CacheModule,
 
     SseModule,
+
+    AvailabilityCalendarModule,
   ],
   providers: [RolesGuard, PermissionGuard, PermissionService, PostService],
 })

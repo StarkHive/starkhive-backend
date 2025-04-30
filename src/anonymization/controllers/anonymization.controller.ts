@@ -11,11 +11,11 @@ export class AnonymizationController {
   constructor(private readonly anonymizationService: AnonymizationService) {}
 
   @Post('anonymize-data')
-  @Roles(Role.ADMIN)
+  // @Roles(Role.ADMIN)
   async anonymizeData(
-    @Body() data: Record<string, any>,
-    @Body('fieldsToAnonymize') fieldsToAnonymize: string[],
+    @Body() body: { data: Record<string, any>; fieldsToAnonymize: string[] },
   ) {
+    const { data, fieldsToAnonymize } = body;
     return this.anonymizationService.anonymizeFields(data, fieldsToAnonymize);
   }
 }
