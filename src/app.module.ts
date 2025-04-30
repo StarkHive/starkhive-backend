@@ -17,6 +17,7 @@ import { PaymentModule } from './payment/payment.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { NotificationSettingsModule } from './notification-settings/notification-settings.module';
 import { FreelancerProfileModule } from './freelancer-profile/freelancer-profile.module';
+import { PostService } from './post/post.service';
 import { PostModule } from './post/post.module';
 import { ReportsModule } from './reports/reports.module';
 import { EndorsementModule } from './endorsement/endorsement.module';
@@ -46,6 +47,9 @@ import { UserSessionModule } from './user-session/user-session.module';
 import { CacheModule } from './cache/cache.module';
 import { RateLimitingModule } from './rate-limiting/rate-limiting.module';
 import { RateLimitingMiddleware } from './rate-limiting/rate-limiting.middleware';
+import { SseModule } from './sse/sse.module';
+import { RecommendationsModule } from './recommendations/recommendations.module';
+import { ProofOfWorkModule } from './proof-of-work/proof-of-work.module';
 import { JobAnalyticsModule } from './job-analytics/job-analytics.module';
 import { SseModule } from './sse/sse.module';
 import { RecommendationsModule } from './recommendations/recommendations.module';
@@ -135,6 +139,7 @@ dotenv.config();
     CacheModule,
     JobAnalyticsModule,
     SseModule,
+    ProofOfWorkModule,
     MetricsModule,
     RecommendationsModule,
     WatchlistModule,
