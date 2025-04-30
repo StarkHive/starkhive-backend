@@ -24,6 +24,8 @@ import {
 import { generateUniqueKey, UtilService } from './utils/utils.function';
 import { emailverification } from '../Email/verification';
 import { MfaService } from './mfa/mfa.service';
+import { SiweMessage } from 'siwe';
+import { v4 as uuidv4 } from 'uuid';
 
 dotenv.config();
 
@@ -36,7 +38,13 @@ export class AuthService {
     private readonly utilService: UtilService,
     private readonly mfaService: MfaService,
   ) {}
+  private nonces = new Map<string, string>(); 
 
+  generatesNonce(address: string): string {
+    const nonce = uuidv4();
+    this.nonces.set(address.toLowerCase(), nonce);
+    return nonce;
+  }
   private generateNonce(): string {
     return Math.floor(Math.random() * 1000000).toString();
   }
@@ -344,4 +352,26 @@ export class AuthService {
       throw new InternalServerErrorException('Failed to create or update user');
     }
   }
-}
+
+  async verifySiweMessage(message: string, signature: string) {
+    try {
+      const siweMessage = new SiweMessage(message);
+      const { data: fields, success } = await siweMessage.verify({ signature });
+  
+      if (!success) {
+        throw new UnauthorizedException('Invalid SIWE signature');
+      }
+  
+      const storedNonce = this.nonces.get(fields.address.toLowerCase());
+      if (!storedNonce || storedNonce !== fields.nonce) {
+        throw new UnauthorizedException('Invalid nonce');
+      }
+  
+      this.nonces.delete(fields.address.toLowerCase());
+  
+      const token = this.jwtService.sign({ address: fields.address });
+      return { token };
+    } catch (err) {
+      throw new UnauthorizedException('Invalid SIWE verification');
+    }
+}}

@@ -6,8 +6,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { JobNotification } from './entities/job-notification.entities';
 import { PolicyVersionModule } from '../policy-version/policy-version.module';
 import { ConnectionNotification } from './entities/connection-notification.entity';
-
-import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
 import { NotificationProcessor } from './queue/notification.processor';
 import { Notification } from './entities/notification.entity';

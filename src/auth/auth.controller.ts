@@ -17,6 +17,8 @@ import { CreateUserDto } from '../user/dto/create-user.dto';
 import { LoginDto } from './dtos/auth.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { OAuthGuard } from './guards/oauth.guard';
+import { VerifySiweDto } from './dtos/verify-siwes.dto';
+import { RequestNonceDto } from './dtos/request-nonce.dto';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -114,5 +116,16 @@ export class AuthController {
   @Post('login')
   async login(@Body() dto: LoginDto) {
     return this.authService.login(dto);
+  }
+
+  @Post('request-nonce')
+  requestNonce(@Body() dto: RequestNonceDto) {
+    const nonce = this.authService.generatesNonce(dto.address);
+    return { nonce };
+  }
+
+  @Post('verify')
+  verify(@Body() dto: VerifySiweDto) {
+    return this.authService.verifySiweMessage(dto.message, dto.signature);
   }
 }
