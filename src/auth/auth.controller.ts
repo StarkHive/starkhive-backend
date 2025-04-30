@@ -119,13 +119,13 @@ export class AuthController {
   }
 
   @Post('request-nonce')
-  requestNonce(@Body() dto: RequestNonceDto) {
-    const nonce = this.authService.generatesNonce(dto.address);
+  async requestNonce(@Body() dto: RequestNonceDto) {
+    const nonce = await this.authService.generateSiwesNonce(dto.address);
     return { nonce };
   }
 
   @Post('verify')
-  verify(@Body() dto: VerifySiweDto) {
+  async verify(@Body() dto: VerifySiweDto) {
     return this.authService.verifySiweMessage(dto.message, dto.signature);
   }
 }

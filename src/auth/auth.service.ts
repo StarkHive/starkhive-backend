@@ -40,7 +40,7 @@ export class AuthService {
   ) {}
   private nonces = new Map<string, string>(); 
 
-  generatesNonce(address: string): string {
+  generateSiwesNonce(address: string): string {
     const nonce = uuidv4();
     this.nonces.set(address.toLowerCase(), nonce);
     return nonce;
@@ -369,7 +369,7 @@ export class AuthService {
   
       this.nonces.delete(fields.address.toLowerCase());
   
-      const token = this.jwtService.sign({ address: fields.address });
+      const token = this.jwtService.sign({ sub: fields.address });
       return { token };
     } catch (err) {
       throw new UnauthorizedException('Invalid SIWE verification');
