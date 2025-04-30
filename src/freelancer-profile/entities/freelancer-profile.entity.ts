@@ -23,6 +23,7 @@ import {
 } from 'class-validator';
 import { Project } from '@src/project/entities/project.entity';
 import { FreelancerPortfolioProject } from './freelancer-portfolio.entity';
+import { Watchlist } from '@src/watchlist/entities/watchlist.entity';
 
 export enum ExperienceLevel {
   ENTRY = 'entry',
@@ -101,6 +102,9 @@ export class FreelancerProfile {
 
   @OneToMany(() => Project, (project) => project.freelancer)
   projects: Project[];
+
+  @OneToMany(() => Watchlist, (watchlist) => watchlist.freelancer)
+  watchlists: Watchlist[];
 
   @CreateDateColumn()
   createdAt: Date;

@@ -22,14 +22,18 @@ import {
 } from 'typeorm';
 import { FreelancerProfile } from 'src/freelancer-profile/entities/freelancer-profile.entity';
 import { Post } from 'src/post/entities/post.entity';
-import { AuditLog } from '@src/audit/entitites/audit-log.entity';
-import { Content } from '@src/content/entities/content.entity';
-import { Connection } from '@src/connection/entities/connection.entity';
-import { ConnectionNotification } from '@src/notifications/entities/connection-notification.entity';
+import { AuditLog } from '../../audit/entitites/audit-log.entity';
+import { Report } from '../../reporting/entities/report.entity';
+import { Content } from '../../content/entities/content.entity';
+import { Connection } from '../../connection/entities/connection.entity';
+import { ConnectionNotification } from '../../notifications/entities/connection-notification.entity';
+import { Reputation } from '../../reputation/Reputation.entity';
+import { UserRole } from '../enums/user-role.enum';
 import { UserSkill } from '../../skills/entities/skill.entity';
-import { Reputation } from '@src/reputation/Reputation.entity';
-import { Report } from '@src/reports/report.entity';
+// import { Reputation } from '@src/reputation/Reputation.entity';
+// import { Report } from '@src/reports/report.entity';
 import { UserSession } from '@src/user-session/entities/user-session.entity';
+import { Referral } from '../../referral/referral.entity';
 
 @Entity('users')
 @Index(['username', 'email'])
@@ -41,6 +45,12 @@ export class User {
     cascade: true,
   })
   reputation: Reputation;
+
+  @Column({ type: 'enum', enum: UserRole, array: true, default: [UserRole.USER] })
+  roles: UserRole[];
+
+  @Column({ type: 'float', default: 0 })
+  jurorReputation: number;
 
   @Column({ unique: true, nullable: true })
   @IsOptional()
@@ -99,11 +109,7 @@ export class User {
   @OneToMany(() => UserSkill, (userSkill) => userSkill.user)
   skills: UserSkill[];
 
-  @OneToOne(
-    () => FreelancerProfile,
-    (freelancerProfile) => freelancerProfile.user,
-    { cascade: true },
-  )
+  @OneToOne(() => FreelancerProfile, (freelancerProfile) => freelancerProfile.user, { cascade: true })
   freelancerProfile: FreelancerProfile;
 
   // OAuth fields
@@ -152,4 +158,7 @@ export class User {
 
   @OneToMany(() => UserSession, (session) => session.user)
   sessions: UserSession[];
+
+  @OneToMany(() => Referral, (referral) => referral.referrer)
+  referrals: Referral[];
 }

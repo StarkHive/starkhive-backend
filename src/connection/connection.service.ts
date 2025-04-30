@@ -6,7 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Not, Repository } from 'typeorm';
 import { Connection, ConnectionStatus } from './entities/connection.entity';
-import { User } from '@src/user/entities/user.entity';
+import { User } from '../user/entities/user.entity';
 import { ConnectionNotification } from '../notifications/entities/connection-notification.entity';
 
 @Injectable()
