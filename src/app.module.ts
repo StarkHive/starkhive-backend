@@ -57,6 +57,7 @@ import * as dotenv from 'dotenv';
 import { JobTagsModule } from './job-tags/job-tags.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
 import { RatingsModule } from './rating/rating.module';
+import { SiweSessionMiddleware } from './auth/middleware/siwes-session.middleware';
 
 dotenv.config();
 
@@ -148,6 +149,9 @@ export class AppModule {
       .apply(ApiUsageMiddleware)
       .forRoutes('*')
       .apply(AuthMiddleware)
-      .forRoutes('*');
+      .forRoutes('*')
+      .apply(SiweSessionMiddleware)
+      .forRoutes({ path: 'protected', method: RequestMethod.ALL }); 
+ 
   }
 }
