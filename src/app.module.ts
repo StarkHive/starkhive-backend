@@ -57,6 +57,8 @@ import * as dotenv from 'dotenv';
 import { JobTagsModule } from './job-tags/job-tags.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
 import { RatingsModule } from './rating/rating.module';
+import { SiweSessionMiddleware } from './auth/middleware/siwes-session.middleware';
+import { ProposalModerationModule } from './proposal-moderation/proposal-moderation.module';
 import { DisputeModule } from './dispute/dispute.module';
 
 dotenv.config();
@@ -138,8 +140,8 @@ dotenv.config();
     WatchlistModule,
     RecruiterModule,
     JobTagsModule,
-    
     RatingsModule,
+    ProposalModerationModule,
     DisputeModule,
   ],
   providers: [RolesGuard, PermissionGuard, PermissionService],
@@ -154,6 +156,9 @@ export class AppModule {
       .apply(ApiUsageMiddleware)
       .forRoutes('*')
       .apply(AuthMiddleware)
-      .forRoutes('*');
+      .forRoutes('*')
+      .apply(SiweSessionMiddleware)
+      .forRoutes({ path: 'protected', method: RequestMethod.ALL }); 
+ 
   }
 }
