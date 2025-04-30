@@ -33,6 +33,7 @@ import { UserSkill } from '../../skills/entities/skill.entity';
 // import { Reputation } from '@src/reputation/Reputation.entity';
 // import { Report } from '@src/reports/report.entity';
 import { UserSession } from '@src/user-session/entities/user-session.entity';
+import { AvailabilityCalendar } from '@src/availability-calendar/entities/availability-calendar.entity';
 import { Referral } from '../../referral/referral.entity';
 
 @Entity('users')
@@ -158,6 +159,10 @@ export class User {
 
   @OneToMany(() => UserSession, (session) => session.user)
   sessions: UserSession[];
+
+  @OneToMany(() => AvailabilityCalendar, (a) => a.user)
+  availabilities: AvailabilityCalendar[];
+
 
   @OneToMany(() => Referral, (referral) => referral.referrer)
   referrals: Referral[];

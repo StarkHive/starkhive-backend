@@ -8,8 +8,8 @@ import { AnonymizationService } from '../services/anonymization.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from '../../auth/decorators/roles.decorator';
-import { Role } from '../../auth/roles.enum'; // keep using this path if it works
 import { AnonymizeDataDto } from '../dto/anonymize-data.dto';
+import { Role } from '@src/auth/enums/role.enum';
 
 @Controller('anonymization')
 @UseGuards(JwtAuthGuard, RolesGuard)

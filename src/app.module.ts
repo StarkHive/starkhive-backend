@@ -53,6 +53,7 @@ import { ProofOfWorkModule } from './proof-of-work/proof-of-work.module';
 import { JobAnalyticsModule } from './job-analytics/job-analytics.module';
 import { SseModule } from './sse/sse.module';
 import { RecommendationsModule } from './recommendations/recommendations.module';
+import { AvailabilityCalendarModule } from './availability-calendar/availability-calendar.module';
 import { MetricsModule } from './metrics/metrics.module';
 import { ValidationModule } from './validation/validation.module';
 import { WatchlistModule } from './watchlist/watchlist.module';
@@ -139,6 +140,8 @@ dotenv.config();
     CacheModule,
     JobAnalyticsModule,
     SseModule,
+
+    AvailabilityCalendarModule,
     ProofOfWorkModule,
     MetricsModule,
     RecommendationsModule,
