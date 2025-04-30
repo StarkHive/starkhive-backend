@@ -58,6 +58,7 @@ import { JobTagsModule } from './job-tags/job-tags.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
 import { RatingsModule } from './rating/rating.module';
 import { SiweSessionMiddleware } from './auth/middleware/siwes-session.middleware';
+import { ProposalModerationModule } from './proposal-moderation/proposal-moderation.module';
 
 dotenv.config();
 
@@ -135,6 +136,8 @@ dotenv.config();
     JobTagsModule,
     
     RatingsModule,
+    
+    ProposalModerationModule,
     
   ],
   providers: [RolesGuard, PermissionGuard, PermissionService],
