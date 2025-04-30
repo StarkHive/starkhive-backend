@@ -130,7 +130,7 @@ export class DisputeService {
     await queryRunner.startTransaction();
 
     try {
-      const dispute = await this.disputeRepository.findOne({ 
+      const dispute = await queryRunner.manager.getRepository(Dispute).findOne({
         where: { id: disputeId },
         relations: ['votes'],
         lock: { mode: 'pessimistic_write' },
