@@ -57,6 +57,7 @@ import * as dotenv from 'dotenv';
 import { JobTagsModule } from './job-tags/job-tags.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
 import { RatingsModule } from './rating/rating.module';
+import { DisputeModule } from './dispute/dispute.module';
 
 dotenv.config();
 
@@ -83,6 +84,11 @@ dotenv.config();
         database: configService.get<string>('DATABASE_NAME'),
         synchronize: configService.get<string>('NODE_ENV') !== 'production',
         autoLoadEntities: true,
+        migrations: [
+          'src/user/migrations/*.ts',
+          'src/dispute/migrations/*.ts'
+        ],
+        migrationsRun: true,
       }),
     }),
     SchedulerModule,
@@ -134,7 +140,7 @@ dotenv.config();
     JobTagsModule,
     
     RatingsModule,
-    
+    DisputeModule,
   ],
   providers: [RolesGuard, PermissionGuard, PermissionService],
 })
