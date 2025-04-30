@@ -10,8 +10,8 @@ import { User } from '@src/user/entities/user.entity';
 import { GoogleStrategy } from './strategies/google.strategy';
 import { GitHubStrategy } from './strategies/github.strategy';
 import { LinkedInStrategy } from './strategies/linkedin.strategy';
-import { UserModule } from '@src/user/user.module';
 import { MfaModule } from './mfa/mfa.module';
+import { UserModule } from '@src/user/user.module';
 
 @Module({
   imports: [

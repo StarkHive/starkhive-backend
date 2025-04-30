@@ -24,7 +24,7 @@ export class ConfigurationController {
 
     const result = await this.configService.create(createConfigDto, userId);
     
-    await this.auditService.createLog({
+    await this.auditService.createAuditLog({
       action: 'config_created',
       resourceType: 'system_config',
       resourceId: result.id,
@@ -60,7 +60,7 @@ export class ConfigurationController {
 
     const result = await this.configService.update(key, updateConfigDto, userId);
     
-    await this.auditService.createLog({
+    await this.auditService.createAuditLog({
       action: 'config_updated',
       resourceType: 'system_config',
       resourceId: result.id,
@@ -83,7 +83,7 @@ export class ConfigurationController {
     const config = await this.configService.findOne(key);
     await this.configService.remove(key);
     
-    await this.auditService.createLog({
+    await this.auditService.createAuditLog({
       action: 'config_deleted',
       resourceType: 'system_config',
       resourceId: config.id,

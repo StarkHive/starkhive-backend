@@ -9,8 +9,9 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { ReportType } from '../enums/report-type.enum';
-import { User } from '@src/user/entities/user.entity';
+import { User } from '../../user/entities/user.entity';
 import { ReportStatus } from '../enums/report-status.enums';
+
 
 @Entity('reports')
 export class Report {
@@ -30,30 +31,28 @@ export class Report {
   })
   status: ReportStatus;
 
-  @Column()
-  resourceType: string;
-
-  @Column()
-  resourceId: string;
-
   @Column('text')
-  description: string;
+  content: string;
 
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'reporterId' })
+  @ManyToOne(() => User, { nullable: false })
+  @JoinColumn({ name: 'reporter_id' })
   reporter: User;
 
-  @Column()
+  @Column({ name: 'reporter_id' })
   reporterId: string;
 
-  @Column({ nullable: true })
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'reviewer_id' })
+  reviewer: User;
+
+  @Column({ name: 'reviewer_id', nullable: true })
   reviewerId: string;
 
   @Column({ nullable: true })
-  reviewedAt: Date;
+  reviewNotes: string;
 
   @Column({ nullable: true })
-  reviewNotes: string;
+  reviewedAt: Date;
 
   @CreateDateColumn()
   createdAt: Date;

@@ -6,7 +6,7 @@ import {
   ViolationStatus,
   ViolationSeverity,
 } from '../policy-violation/policy-violation.entity';
-import { UserConsent } from '@src/user-censent/user-censent.entity';
+import { UserConsent } from '../user-censent/user-censent.entity';
 import { Policy } from '../policy/policy.entity';
 
 @Injectable()

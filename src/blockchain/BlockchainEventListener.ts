@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ReputationRepository } from '@src/reputation/ReputationRepository';
+import { ReputationRepository } from '../reputation/ReputationRepository';
 
 @Injectable()
 export class BlockchainEventListener {

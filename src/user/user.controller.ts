@@ -3,7 +3,7 @@ import { Request } from 'express'; // Import the extended Request type
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { AuditService } from '@src/audit/audit.service';
+import { AuditService } from '../audit/audit.service';
 import { User } from './user.interface'; // Import the User interface
 import { CacheService } from "@src/cache/cache.service";
 import { UserImportService } from './providers/user-import.service';
@@ -32,7 +32,7 @@ export class UserController {
       throw new UnauthorizedException('User not authenticated');
     }
 
-    await this.auditService.createLog({
+    await this.auditService.createAuditLog({
       action: 'user_created',
       resourceType: 'user',
       userId: currentUser.id,

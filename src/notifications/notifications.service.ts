@@ -1,13 +1,19 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 import { Injectable, NotFoundException, Inject, forwardRef } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
-import { Repository } from "typeorm"
+import { Repository, EntityManager } from "typeorm"
 import * as nodemailer from "nodemailer"
 import { NotificationSettingsService } from "../notification-settings/notification-settings.service"
 import { JobNotification } from "./entities/job-notification.entities"
 import { SseService } from "../sse/sse.service"
 import { NotificationEventDto } from "./dto/notification-event.dto"
 import { Logger } from "@nestjs/common"
+import { InjectQueue } from '@nestjs/bull'
+import { Queue } from 'bull'
+import { Notification, NotificationStatus, DigestFrequency } from './entities/notification.entity'
+import { NotificationPreference } from './entities/notification-preference.entity'
+import { UpdateNotificationPreferenceDto } from './dto/notification-preference.dto'
+import { TriggerNotificationDto } from './dto/trigger-notification.dto'
 
 @Injectable()
 export class NotificationsService {
@@ -25,9 +31,15 @@ export class NotificationsService {
   constructor(
     private readonly notificationSettingsService: NotificationSettingsService,
     @InjectRepository(JobNotification)
-    private readonly notificationRepository: Repository<JobNotification>,
+    private readonly jobNotificationRepository: Repository<JobNotification>,
     @Inject(forwardRef(() => SseService))
     private readonly sseService: SseService,
+    @InjectRepository(Notification)
+    private readonly notificationRepository: Repository<Notification>,
+    @InjectRepository(NotificationPreference)
+    private readonly preferenceRepository: Repository<NotificationPreference>,
+    @InjectQueue('notifications')
+    private notificationsQueue: Queue,
   ) {}
 
   public async create(createNotificationDto: {
@@ -35,7 +47,7 @@ export class NotificationsService {
     type: string
     message: string
     data?: any
-  }) {
+  }, entityManager?: EntityManager) {
     const { userId, type, message, data } = createNotificationDto
     const numericUserId = typeof userId === "string" ? Number.parseInt(userId, 10) : userId
 
@@ -45,7 +57,10 @@ export class NotificationsService {
       type,
       message,
     })
-    await this.notificationRepository.save(notification)
+    
+    // Use provided entityManager or fall back to repository
+    const saveRepo = entityManager?.getRepository(Notification) || this.notificationRepository
+    await saveRepo.save(notification)
 
     // Emit real-time SSE notification
     this.emitSseNotification(
@@ -230,5 +245,140 @@ export class NotificationsService {
     })
 
     return notification
+  }
+
+  async updatePreferences(
+    userId: string,
+    dto: UpdateNotificationPreferenceDto,
+  ): Promise<NotificationPreference> {
+    let preference = await this.preferenceRepository.findOne({
+      where: {
+        userId,
+        notificationType: dto.notificationType,
+      },
+    });
+
+    if (!preference) {
+      preference = this.preferenceRepository.create({
+        userId,
+        ...dto,
+      });
+    } else {
+      Object.assign(preference, dto);
+    }
+
+    return this.preferenceRepository.save(preference);
+  }
+
+  async triggerNotification(dto: TriggerNotificationDto): Promise<Notification> {
+    const preference = await this.preferenceRepository.findOne({
+      where: {
+        userId: dto.userId,
+        notificationType: dto.type,
+      },
+    });
+
+    if (!preference || !preference.enabled) {
+      this.logger.warn(`Notifications disabled for user ${dto.userId} and type ${dto.type}`);
+      return null;
+    }
+
+    const notification = await this.notificationRepository.save({
+      userId: dto.userId,
+      type: dto.type,
+      content: dto.content,
+      deliveryChannel: dto.deliveryChannel || preference.deliveryChannels[0],
+      status: NotificationStatus.PENDING,
+      priority: dto.priority || 0,
+      scheduledFor: dto.scheduledFor,
+    });
+
+    if (preference.digestFrequency === DigestFrequency.IMMEDIATE) {
+      await this.queueImmediateNotification(notification);
+    } else {
+      await this.queueDigestNotification(notification, preference.digestFrequency);
+    }
+
+    return notification;
+  }
+
+  private async queueImmediateNotification(notification: Notification): Promise<void> {
+    const options: any = {
+      attempts: 3,
+      backoff: {
+        type: 'exponential',
+        delay: 1000,
+      },
+    };
+
+    if (notification.scheduledFor) {
+      options.delay = notification.scheduledFor.getTime() - Date.now();
+    }
+
+    if (notification.priority > 0) {
+      options.priority = notification.priority;
+    }
+
+    await this.notificationsQueue.add(
+      'send',
+      { notificationId: notification.id },
+      options,
+    );
+  }
+
+  private async queueDigestNotification(
+    notification: Notification,
+    frequency: DigestFrequency,
+  ): Promise<void> {
+    const delay = this.calculateDigestDelay(frequency);
+    
+    await this.notificationsQueue.add(
+      'digest',
+      {
+        userId: notification.userId,
+        frequency,
+      },
+      {
+        delay,
+        jobId: `digest:${notification.userId}:${frequency}`,
+        priority: notification.priority,
+      },
+    );
+  }
+
+  private calculateDigestDelay(frequency: DigestFrequency): number {
+    const now = new Date();
+    let nextRun: Date;
+
+    switch (frequency) {
+      case DigestFrequency.HOURLY:
+        nextRun = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours() + 1);
+        break;
+      case DigestFrequency.DAILY:
+        nextRun = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+        break;
+      default:
+        throw new Error(`Unsupported digest frequency: ${frequency}`);
+    }
+
+    return nextRun.getTime() - now.getTime();
+  }
+
+  async getNotifications(userId: string, status?: NotificationStatus): Promise<Notification[]> {
+    return this.notificationRepository.find({
+      where: {
+        userId,
+        ...(status && { status }),
+      },
+      order: {
+        createdAt: 'DESC',
+      },
+    });
+  }
+
+  async getPreferences(userId: string): Promise<NotificationPreference[]> {
+    return this.preferenceRepository.find({
+      where: { userId },
+    });
   }
 }
