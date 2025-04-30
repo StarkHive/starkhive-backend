@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 import { Injectable, NotFoundException, Inject, forwardRef } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
-import { Repository } from "typeorm"
+import { Repository, EntityManager } from "typeorm"
 import * as nodemailer from "nodemailer"
 import { NotificationSettingsService } from "../notification-settings/notification-settings.service"
 import { JobNotification } from "./entities/job-notification.entities"
@@ -31,13 +31,13 @@ export class NotificationsService {
   constructor(
     private readonly notificationSettingsService: NotificationSettingsService,
     @InjectRepository(JobNotification)
-    private readonly notificationRepository: Repository<JobNotification>,
+    private readonly jobNotificationRepository: Repository<JobNotification>,
     @Inject(forwardRef(() => SseService))
     private readonly sseService: SseService,
     @InjectRepository(Notification)
-    private notificationRepository: Repository<Notification>,
+    private readonly notificationRepository: Repository<Notification>,
     @InjectRepository(NotificationPreference)
-    private preferenceRepository: Repository<NotificationPreference>,
+    private readonly preferenceRepository: Repository<NotificationPreference>,
     @InjectQueue('notifications')
     private notificationsQueue: Queue,
   ) {}
@@ -47,7 +47,7 @@ export class NotificationsService {
     type: string
     message: string
     data?: any
-  }) {
+  }, entityManager?: EntityManager) {
     const { userId, type, message, data } = createNotificationDto
     const numericUserId = typeof userId === "string" ? Number.parseInt(userId, 10) : userId
 
@@ -57,7 +57,10 @@ export class NotificationsService {
       type,
       message,
     })
-    await this.notificationRepository.save(notification)
+    
+    // Use provided entityManager or fall back to repository
+    const saveRepo = entityManager?.getRepository(Notification) || this.notificationRepository
+    await saveRepo.save(notification)
 
     // Emit real-time SSE notification
     this.emitSseNotification(

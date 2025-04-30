@@ -59,6 +59,7 @@ import { SchedulerModule } from './scheduler/scheduler.module';
 import { RatingsModule } from './rating/rating.module';
 import { SiweSessionMiddleware } from './auth/middleware/siwes-session.middleware';
 import { ProposalModerationModule } from './proposal-moderation/proposal-moderation.module';
+import { DisputeModule } from './dispute/dispute.module';
 
 dotenv.config();
 
@@ -85,6 +86,11 @@ dotenv.config();
         database: configService.get<string>('DATABASE_NAME'),
         synchronize: configService.get<string>('NODE_ENV') !== 'production',
         autoLoadEntities: true,
+        migrations: [
+          'src/user/migrations/*.ts',
+          'src/dispute/migrations/*.ts'
+        ],
+        migrationsRun: true,
       }),
     }),
     SchedulerModule,
@@ -134,11 +140,9 @@ dotenv.config();
     WatchlistModule,
     RecruiterModule,
     JobTagsModule,
-    
     RatingsModule,
-    
     ProposalModerationModule,
-    
+    DisputeModule,
   ],
   providers: [RolesGuard, PermissionGuard, PermissionService],
 })
