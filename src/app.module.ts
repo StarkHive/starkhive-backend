@@ -66,6 +66,7 @@ import { SiweSessionMiddleware } from './auth/middleware/siwes-session.middlewar
 import { ProposalModerationModule } from './proposal-moderation/proposal-moderation.module';
 import { DisputeModule } from './dispute/dispute.module';
 import { KycVerificationModule } from './kyc-verification/kyc-verification.module';
+import { ReputationAppealModule } from './reputation-appeal/reputation-appeal.module';
 import kycConfig from './config/kyc.config';
 
 dotenv.config();
@@ -155,6 +156,7 @@ dotenv.config();
     ProposalModerationModule,
     DisputeModule,
     KycVerificationModule,
+    ReputationAppealModule,
   ],
   providers: [RolesGuard, PermissionGuard, PermissionService],
 })

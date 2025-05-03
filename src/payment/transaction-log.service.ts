@@ -18,6 +18,13 @@ export class TransactionLogService {
     private callbackLogRepository: Repository<CallbackLog>,
   ) {}
 
+  async findOne(transactionId: number) {
+    // Implement logic to find a transaction by its ID
+    // Example:
+    return await this.transactionLogRepository.findOne({ where: { id: transactionId } });
+   
+  }
+
   async logTransaction(data: {
     email: string;
     amount?: number;
