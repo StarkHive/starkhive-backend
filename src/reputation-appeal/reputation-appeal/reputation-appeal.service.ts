@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { CreateReputationAppealDto } from '../dto/create-reputation-appeal.dto';
-import { UpdateReputationAppealDto } from '../dto/update-reputation-appeal.dto';
 import { AppealStatus, ReputationAppeal } from '../entities/reputation-appeal.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserService } from '@src/user/user.service';
@@ -18,6 +17,12 @@ export class ReputationAppealService {
 
   async fileAppeal(userId: string, transactionId: number, reason: string) {
     const user = await this.userService.findOne(userId);
+
+      if (!user) {
+        throw new Error(`User with ID ${userId} not found`);
+      }
+
+
     const transaction = await this.transactionService.findOne(transactionId);
     if (!transaction) {
       throw new Error(`Transaction with ID ${transactionId} not found`);
@@ -28,12 +33,16 @@ export class ReputationAppealService {
   }
 
   async resolveAppeal(id: string, status: AppealStatus, reviewerId: string) {
-    const appeal = await this.appealRepo.findOneOrFail({ where: { id } });
-    appeal.status = status;
-    appeal.reviewedBy = reviewerId;
-    appeal.reviewedAt = new Date();
-    return this.appealRepo.save(appeal);
-  }
+      // Validate that status is one of the allowed values (not PENDING)
+      if (status === AppealStatus.PENDING) {
+        throw new Error('Cannot resolve appeal with PENDING status');
+      }
+       const appeal = await this.appealRepo.findOneOrFail({ where: { id } });
+       appeal.status = status;
+       appeal.reviewedBy = reviewerId;
+       appeal.reviewedAt = new Date();
+       return this.appealRepo.save(appeal);
+     }
 
   async getPendingAppeals() {
     return this.appealRepo.find({ where: { status: AppealStatus.PENDING }, relations: ['user', 'transaction'] });
