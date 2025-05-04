@@ -12,7 +12,7 @@ import { ErrorTrackingService } from './error-tracking.service';
 import { ErrorSeverity } from './entities/error-log.entity';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { Role } from '../auth/roles.enum';
+import { Role } from '@src/auth/enums/role.enum';
 
 @ApiTags('Error Tracking')
 @Controller('error-tracking')

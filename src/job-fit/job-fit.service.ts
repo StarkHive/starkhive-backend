@@ -112,9 +112,9 @@ export class JobFitService {
         const allSkills = Array.from(new Set([...userSkills.map(s => s.toLowerCase()), ...jobSkills.map(s => s.toLowerCase())]));
         const userVec = allSkills.map(skill => userSkills.map(s => s.toLowerCase()).includes(skill) ? 1 : 0);
         const jobVec = allSkills.map(skill => jobSkills.map(s => s.toLowerCase()).includes(skill) ? 1 : 0);
-        const dot = userVec.reduce((sum, val, i) => sum + val * jobVec[i], 0);
-        const normA = Math.sqrt(userVec.reduce((sum, val) => sum + val * val, 0));
-        const normB = Math.sqrt(jobVec.reduce((sum, val) => sum + val * val, 0));
+        const dot = userVec.reduce((sum: number, val, i) => sum + val * jobVec[i], 0);
+        const normA = Math.sqrt(userVec.reduce((sum: number, val) => sum + val * val, 0));
+        const normB = Math.sqrt(jobVec.reduce((sum: number, val) => sum + val * val, 0));
         if (normA === 0 || normB === 0) return 0;
         // Scale to 0-100
         return Math.round((dot / (normA * normB)) * 100);

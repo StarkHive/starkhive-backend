@@ -11,7 +11,8 @@ export class JobFitController {
             const score = await this.jobFitService.computeJobFitScore(userId, jobId);
             return { score };
         } catch (error) {
-            throw new HttpException(error.message || 'Failed to compute job fit score', HttpStatus.BAD_REQUEST);
+            const message = (error instanceof Error && error.message) ? error.message : 'Failed to compute job fit score';
+            throw new HttpException(message, HttpStatus.BAD_REQUEST);
         }
     }
 }

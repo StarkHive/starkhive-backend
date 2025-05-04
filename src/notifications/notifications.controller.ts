@@ -6,6 +6,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { NotificationStatus } from './entities/notification.entity';
+import { Role } from '@src/auth/enums/role.enum';
 
 @Controller('notifications')
 @UseGuards(JwtAuthGuard)
@@ -22,7 +23,7 @@ export class NotificationsController {
 
     @Post('trigger')
     @UseGuards(RolesGuard)
-    @Roles('admin')
+    @Roles(Role.ADMIN)
     async triggerNotification(@Body() dto: TriggerNotificationDto) {
         return this.notificationsService.triggerNotification(dto);
     }
