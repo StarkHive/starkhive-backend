@@ -51,8 +51,6 @@ import { SseModule } from './sse/sse.module';
 import { RecommendationsModule } from './recommendations/recommendations.module';
 import { ProofOfWorkModule } from './proof-of-work/proof-of-work.module';
 import { JobAnalyticsModule } from './job-analytics/job-analytics.module';
-import { SseModule } from './sse/sse.module';
-import { RecommendationsModule } from './recommendations/recommendations.module';
 import { AvailabilityCalendarModule } from './availability-calendar/availability-calendar.module';
 import { MetricsModule } from './metrics/metrics.module';
 import { ValidationModule } from './validation/validation.module';
@@ -66,6 +64,7 @@ import { SiweSessionMiddleware } from './auth/middleware/siwes-session.middlewar
 import { ProposalModerationModule } from './proposal-moderation/proposal-moderation.module';
 import { DisputeModule } from './dispute/dispute.module';
 import { KycVerificationModule } from './kyc-verification/kyc-verification.module';
+import { ReferralProgramModule } from './referral-program/referral-program.module';
 import kycConfig from './config/kyc.config';
 
 dotenv.config();
@@ -155,6 +154,7 @@ dotenv.config();
     ProposalModerationModule,
     DisputeModule,
     KycVerificationModule,
+    ReferralProgramModule,
   ],
   providers: [RolesGuard, PermissionGuard, PermissionService],
 })

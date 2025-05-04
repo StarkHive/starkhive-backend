@@ -7,7 +7,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { PERMISSIONS_KEY } from '../decorators/permissions.decorator';
 import { PermissionService } from '../services/permission.service';
-import { Permission } from '../roles.enum';
+import { Permission } from '../enums/role.enum';
 
 @Injectable()
 export class PermissionGuard implements CanActivate {

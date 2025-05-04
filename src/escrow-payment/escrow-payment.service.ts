@@ -57,12 +57,14 @@ export class EscrowPaymentService {
     }));
     // Update parent payment status
     const payment = await this.escrowPaymentRepo.findOne({ where: { id: split.escrowPayment.id }, relations: ['splits'] });
-    if (payment.splits.every(s => s.status === 'completed')) {
-      payment.status = 'completed';
-    } else if (payment.splits.some(s => s.status === 'completed')) {
-      payment.status = 'partial';
+    if (payment) {
+      if (payment.splits.every(s => s.status === 'completed')) {
+        payment.status = 'completed';
+      } else if (payment.splits.some(s => s.status === 'completed')) {
+        payment.status = 'partial';
+      }
+      await this.escrowPaymentRepo.save(payment);
     }
-    await this.escrowPaymentRepo.save(payment);
     return split;
   }
 
