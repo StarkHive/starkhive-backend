@@ -65,9 +65,11 @@ import { RatingsModule } from './rating/rating.module';
 import { SiweSessionMiddleware } from './auth/middleware/siwes-session.middleware';
 import { ProposalModerationModule } from './proposal-moderation/proposal-moderation.module';
 import { DisputeModule } from './dispute/dispute.module';
+import { PeerReviewModule } from './peer-review/peer-review.module';
 import { KycVerificationModule } from './kyc-verification/kyc-verification.module';
 import { ReputationAppealModule } from './reputation-appeal/reputation-appeal.module';
 import kycConfig from './config/kyc.config';
+
 
 dotenv.config();
 
@@ -155,6 +157,7 @@ dotenv.config();
     RatingsModule,
     ProposalModerationModule,
     DisputeModule,
+    PeerReviewModule,
     KycVerificationModule,
     ReputationAppealModule,
   ],
