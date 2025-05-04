@@ -65,6 +65,7 @@ import { RatingsModule } from './rating/rating.module';
 import { SiweSessionMiddleware } from './auth/middleware/siwes-session.middleware';
 import { ProposalModerationModule } from './proposal-moderation/proposal-moderation.module';
 import { DisputeModule } from './dispute/dispute.module';
+import { PeerReviewModule } from './peer-review/peer-review.module';
 
 dotenv.config();
 
@@ -151,6 +152,7 @@ dotenv.config();
     RatingsModule,
     ProposalModerationModule,
     DisputeModule,
+    PeerReviewModule,
   ],
   providers: [RolesGuard, PermissionGuard, PermissionService],
 })
