@@ -66,6 +66,9 @@ import { SiweSessionMiddleware } from './auth/middleware/siwes-session.middlewar
 import { ProposalModerationModule } from './proposal-moderation/proposal-moderation.module';
 import { DisputeModule } from './dispute/dispute.module';
 import { PeerReviewModule } from './peer-review/peer-review.module';
+import { KycVerificationModule } from './kyc-verification/kyc-verification.module';
+import kycConfig from './config/kyc.config';
+
 
 dotenv.config();
 
@@ -73,6 +76,7 @@ dotenv.config();
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      load: [kycConfig],
       envFilePath: [
         '.env.local',
         '.env.development',
@@ -153,6 +157,7 @@ dotenv.config();
     ProposalModerationModule,
     DisputeModule,
     PeerReviewModule,
+    KycVerificationModule,
   ],
   providers: [RolesGuard, PermissionGuard, PermissionService],
 })
