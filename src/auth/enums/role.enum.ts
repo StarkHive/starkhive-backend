@@ -5,5 +5,5 @@ export enum Role {
   FREELANCER = 'freelancer',
   COMPANY = 'company',
   SECURITY_AUDITOR = 'security_auditor',
-  JUROR = 'juror',
+  JURY = 'jury',
 }

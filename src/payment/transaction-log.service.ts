@@ -18,6 +18,26 @@ export class TransactionLogService {
     private callbackLogRepository: Repository<CallbackLog>,
   ) {}
 
+  async findOne(transactionId: number) {
+    
+        try {
+          const transaction = await this.transactionLogRepository.findOne({ where: { id: transactionId } });
+          
+         if (!transaction) {
+            this.logger.warn(`Transaction not found with ID: ${transactionId}`);
+            return null;
+          }
+          
+         return transaction;
+        } catch (error:any) {
+          this.logger.error(
+            `Failed to find transaction with ID ${transactionId}: ${error.message}`,
+            error.stack
+          );
+        throw error;
+        }
+      }
+
   async logTransaction(data: {
     email: string;
     amount?: number;
