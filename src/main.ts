@@ -1,10 +1,11 @@
 import { NestFactory } from "@nestjs/core"
 import { AppModule } from "./app.module"
-import { ValidationPipe } from "@nestjs/common"
+import { ValidationPipe, Logger } from "@nestjs/common"
 import type { NestExpressApplication } from "@nestjs/platform-express"
 import session from "express-session"
 import passport from "passport"
-import { Logger } from "@nestjs/common"
+import * as fs from "fs"
+import * as path from "path"
 
 async function bootstrap() {
   const logger = new Logger("Bootstrap")
@@ -17,6 +18,26 @@ async function bootstrap() {
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
+
+  // Create uploads directory if it doesn't exist
+  const uploadsDir = path.join(process.cwd(), "uploads")
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir)
+  }
+
+  // Create previews and thumbnails directories
+  const previewsDir = path.join(process.cwd(), "public", "previews")
+  const thumbnailsDir = path.join(process.cwd(), "public", "thumbnails")
+
+  if (!fs.existsSync(previewsDir)) {
+    fs.mkdirSync(previewsDir, { recursive: true })
+  }
+  if (!fs.existsSync(thumbnailsDir)) {
+    fs.mkdirSync(thumbnailsDir, { recursive: true })
+  }
+
+  // Serve static assets from /public
+  app.useStaticAssets(path.join(process.cwd(), "public"))
 
   // Set global prefix for all routes
   app.setGlobalPrefix("api/admin")
@@ -42,14 +63,13 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe())
 
   // Configure server timeout for long-lived connections like SSE
-  // This is important for SSE connections that need to stay open
-  app.set("keepAliveTimeout", 65000) // Slightly higher than 60 seconds
-  app.set("headersTimeout", 66000) // Slightly higher than keepAliveTimeout
+  app.set("keepAliveTimeout", 65000)
+  app.set("headersTimeout", 66000)
 
   await app.listen(process.env.PORT || 3000)
 
   logger.log(`Application is running on: ${await app.getUrl()}`)
   logger.log(`Environment: ${process.env.NODE_ENV || "development"}`)
 }
-bootstrap()
 
+bootstrap()
