@@ -1,15 +1,15 @@
-import { Injectable, HttpException, HttpStatus } from "@nestjs/common"
+import { Injectable, HttpException, HttpStatus, Logger } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
-import { type Repository, ILike } from "typeorm"
+import { Repository, ILike } from "typeorm"
 import { JobPosting } from "./entities/job-posting.entity"
 import { CreateJobDto } from "./dto/create-job.dto"
 import { UpdateJobDto } from "./dto/update-job.dto"
 import { NotificationsService } from "src/notifications/notifications.service"
-import { Logger } from "@nestjs/common"
+import { NotificationType } from "@src/notifications/entities/notification.entity"
 
 @Injectable()
 export class JobPostingsService {
-  private readonly logger = new Logger(JobPostingsService.name);
+  private readonly logger = new Logger(JobPostingsService.name)
 
   constructor(
     @InjectRepository(JobPosting)
@@ -84,16 +84,16 @@ export class JobPostingsService {
 
     try {
       /** Send a notification when a job is posted */
-      await this.notificationService.create({
-        userId: 1, // Replace this with the actual job poster's userId
-        type: "job_posted",
+      await this.notificationService.sendNotification({
+        userId: "1",
+        type: NotificationType.JOB_POSTED,
         message: `A new job '${savedJob.title}' has been posted!`,
         data: jobData,
       })
 
       /** Broadcast to all connected users */
       await this.notificationService.broadcastNotification(
-        "new_job_posting",
+        NotificationType.NEW_JOB_POSTING,
         `New job opportunity: ${savedJob.title} at ${savedJob.company}`,
         jobData,
       )
@@ -118,9 +118,9 @@ export class JobPostingsService {
 
     try {
       /** Notify users about the job update */
-      await this.notificationService.create({
-        userId: 1, // Replace with the job poster's userId
-        type: "job_updated",
+      await this.notificationService.sendNotification({
+        userId: "1",
+        type: NotificationType.JOB_UPDATED,
         message: `The job '${job.title}' has been updated.`,
         data: {
           id: updatedJob.id,
@@ -134,7 +134,7 @@ export class JobPostingsService {
 
       /** Broadcast the update to interested users */
       await this.notificationService.broadcastNotification(
-        "job_posting_updated",
+        NotificationType.JOB_POSTING_UPDATED,
         `Job posting updated: ${updatedJob.title} at ${updatedJob.company}`,
         {
           id: updatedJob.id,
@@ -167,9 +167,9 @@ export class JobPostingsService {
 
     try {
       /** Notify users about job deletion */
-      await this.notificationService.create({
-        userId: 1, // Replace with the job poster's userId
-        type: "job_deleted",
+      await this.notificationService.sendNotification({
+        userId: "1", // Replace with the job poster's userId
+        type: NotificationType.JOB_DELETED,
         message: `The job '${job.title}' has been deleted.`,
         data: {
           id: job.id,
@@ -180,7 +180,7 @@ export class JobPostingsService {
 
       /** Broadcast the deletion to all interested users */
       await this.notificationService.broadcastNotification(
-        "job_posting_removed",
+        NotificationType.JOB_POSTING_REMOVED,
         `Job posting removed: ${job.title} at ${job.company}`,
         {
           id: job.id,

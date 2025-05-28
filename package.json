@@ -60,6 +60,7 @@
     "ethers": "^6.13.7",
     "express": "^4.21.2",
     "express-session": "^1.18.1",
+    "firebase-admin": "^13.4.0",
     "get-starknet": "^3.0.1",
     "ics": "^3.8.1",
     "json2csv": "^6.0.0-alpha.2",

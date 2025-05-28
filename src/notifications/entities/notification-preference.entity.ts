@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
 import { NotificationType, DeliveryChannel, DigestFrequency } from './notification.entity';
+import { User } from '@src/user/entities/user.entity';
 
 @Entity('notification_preferences')
 export class NotificationPreference {

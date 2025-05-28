@@ -11,11 +11,22 @@ export class PushStrategy implements NotificationStrategy {
 
   constructor(private configService: ConfigService) {
     if (!admin.apps.length) {
+      const projectId = this.configService.get<string>('FIREBASE_PROJECT_ID');
+      const clientEmail = this.configService.get<string>('FIREBASE_CLIENT_EMAIL');
+      const rawPrivateKey = this.configService.get<string>('FIREBASE_PRIVATE_KEY');
+
+      if (!projectId || !clientEmail || !rawPrivateKey) {
+        throw new Error('Firebase config environment variables are missing');
+      }
+
+      // Replace escaped newlines in the private key string
+      const privateKey = rawPrivateKey.replace(/\\n/g, '\n');
+
       admin.initializeApp({
         credential: admin.credential.cert({
-          projectId: this.configService.get('FIREBASE_PROJECT_ID'),
-          clientEmail: this.configService.get('FIREBASE_CLIENT_EMAIL'),
-          privateKey: this.configService.get('FIREBASE_PRIVATE_KEY').replace(/\\n/g, '\n'),
+          projectId,
+          clientEmail,
+          privateKey,
         }),
       });
     }
@@ -25,7 +36,7 @@ export class PushStrategy implements NotificationStrategy {
   async send(notification: Notification): Promise<boolean> {
     try {
       const preference = await notification.user.notificationPreferences.find(
-        (pref) => pref.notificationType === notification.type
+        (pref) => pref.notificationType === notification.type,
       );
 
       if (!preference?.channelConfig?.push?.deviceTokens?.length) {
@@ -34,35 +45,48 @@ export class PushStrategy implements NotificationStrategy {
 
       const { deviceTokens } = preference.channelConfig.push;
 
-      const message: admin.messaging.MulticastMessage = {
-        tokens: deviceTokens,
-        notification: {
-          title: notification.type,
-          body: this.generateNotificationBody(notification),
-        },
-        data: {
-          notificationId: notification.id,
-          type: notification.type,
-          content: JSON.stringify(notification.content),
-        },
-      };
+      const sendPromises = deviceTokens.map((token) =>
+        this.fcm.send({
+          token,
+          notification: {
+            title: notification.type,
+            body: this.generateNotificationBody(notification),
+          },
+          data: {
+            notificationId: notification.id,
+            type: notification.type,
+            content: JSON.stringify(notification.content),
+          },
+        }),
+      );
 
-      const response = await this.fcm.sendMulticast(message);
-      
-      if (response.failureCount > 0) {
-        this.logger.warn(`Some push notifications failed: ${response.failureCount} failures`);
+      const results = await Promise.allSettled(sendPromises);
+
+      const successCount = results.filter(
+        (r) => r.status === 'fulfilled',
+      ).length;
+
+      if (successCount < deviceTokens.length) {
+        this.logger.warn(
+          `Some push notifications failed: ${deviceTokens.length - successCount} failures`,
+        );
       }
 
-      return response.successCount > 0;
+      return successCount > 0;
     } catch (error) {
-      this.logger.error(`Failed to send push notification: ${error.message}`, error.stack);
+      if (error instanceof Error) {
+        this.logger.error(
+          `Failed to send push notification: ${error.message}`,
+          error.stack,
+        );
+      } else {
+        this.logger.error('Unknown error occurred while sending push notification');
+      }
       return false;
     }
   }
 
   private generateNotificationBody(notification: Notification): string {
-    // Create a simple text representation of the notification content
-    // You can customize this based on the notification type and content
     switch (notification.type) {
       case 'job_match':
         return 'New job match found for you!';
@@ -74,4 +98,4 @@ export class PushStrategy implements NotificationStrategy {
         return 'New notification';
     }
   }
-} 
+}

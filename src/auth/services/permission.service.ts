@@ -1,6 +1,6 @@
-/* eslint-disable prettier/prettier */
 import { Injectable } from '@nestjs/common';
-import { Role, Permission } from '../roles.enum';
+import { Permission } from '../enums/permission.enum'; // updated path
+import { Role } from '../enums/role.enum';
 
 @Injectable()
 export class PermissionService {
@@ -18,8 +18,10 @@ export class PermissionService {
       Permission.VIEW_PROJECT,
     ],
     [Role.FREELANCER]: [Permission.VIEW_PROJECT],
-    [Role.USER]: [Permission.VIEW_PROJECT], // Adding USER role with basic permissions
-    [Role.SECURITY_AUDITOR]: [Permission.VIEW_PROJECT], 
+    [Role.USER]: [Permission.VIEW_PROJECT],
+    [Role.SECURITY_AUDITOR]: [Permission.VIEW_PROJECT],
+    [Role.MODERATOR]: [Permission.VIEW_PROJECT],
+    [Role.JUROR]: [Permission.VIEW_PROJECT],
   };
 
   getPermissionsForRole(role: Role): Permission[] {

@@ -38,7 +38,7 @@ export class CommentService {
     // Create mention notifications if applicable
     if (mentions && mentions.length > 0) {
       for (const mentionedUserId of mentions) {
-        await this.notificationsService.createMentionNotification(mentionedUserId, savedComment.id);
+        await this.notificationsService.createMessageNotification(mentionedUserId, savedComment.id);
       }
     }
 

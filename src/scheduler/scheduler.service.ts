@@ -61,17 +61,40 @@ import {
       if (!slot) {
         throw new NotFoundException('Slot not found');
       }
-  
-      const updatedSlot = { ...slot, ...updateSlotDto };
+    
+      // Convert startTime and endTime from string to Date if needed:
+      const startTime = updateSlotDto.startTime
+        ? typeof updateSlotDto.startTime === 'string'
+          ? new Date(updateSlotDto.startTime)
+          : updateSlotDto.startTime
+        : slot.startTime;
+    
+      const endTime = updateSlotDto.endTime
+        ? typeof updateSlotDto.endTime === 'string'
+          ? new Date(updateSlotDto.endTime)
+          : updateSlotDto.endTime
+        : slot.endTime;
+    
+      // Build updated slot object with correctly typed Date fields:
+      const updatedSlot: InterviewSlot & { timezone: string } = {
+        ...slot,
+        ...updateSlotDto,
+        startTime,
+        endTime,
+        timezone: updateSlotDto.timezone ?? slot.timezone,
+      };
+    
+      // Normalize timezone (this will convert times to UTC dates)
       const normalizedSlot = this.timezoneHelper.normalizeSlotTimezone(updatedSlot);
-  
+    
       const conflicts = await this.checkForConflicts(normalizedSlot, id);
       if (conflicts.length > 0) {
         throw new ConflictException('Conflicting interview slots found');
       }
-  
+    
       return this.slotRepository.save(normalizedSlot);
     }
+    
   
     async deleteSlot(id: string): Promise<{ message: string }> {
       const result = await this.slotRepository.delete(id);

@@ -34,6 +34,8 @@ import { UserSkill } from '../../skills/entities/skill.entity';
 // import { Report } from '@src/reports/report.entity';
 import { UserSession } from '@src/user-session/entities/user-session.entity';
 import { Referral } from '../../referral/referral.entity';
+import { NotificationPreference } from '@src/notifications/entities/notification-preference.entity';
+import { PresenceStatus } from '../enums/presence-status.enum';
 
 @Entity('users')
 @Index(['username', 'email'])
@@ -161,4 +163,14 @@ export class User {
 
   @OneToMany(() => Referral, (referral) => referral.referrer)
   referrals: Referral[];
+
+  @OneToMany(() => NotificationPreference, pref => pref.user, { eager: true })
+  notificationPreferences: NotificationPreference[];
+
+  @Column({ type: 'timestamp', nullable: true })
+  lastActivityAt: Date;
+
+  @Column({ type: 'enum', enum: PresenceStatus, default: PresenceStatus.OFFLINE })
+  presenceStatus: PresenceStatus;
+
 }

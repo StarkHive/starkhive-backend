@@ -1,10 +1,28 @@
+import { User } from '@src/user/entities/user.entity';
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
 
 export enum NotificationType {
   JOB_MATCH = 'job_match',
   MESSAGE = 'message',
   ENDORSEMENT = 'endorsement',
+  GENERAL = "general",
+  MENTION = "mention",
+  DISPUTE_ASSIGNMENT = 'DISPUTE_ASSIGNMENT',
+  DISPUTE_RESOLUTION = 'DISPUTE_RESOLUTION',
+  REQUEST_DECLINED = 'request_declined',
+  REQUEST_ACCEPTED = 'request_accepted',
+  REQUEST_COMPLETED = 'request_completed',
+  JOB_POSTED = "job_posted",
+  JOB_UPDATED = "job_updated",
+  JOB_DELETED = "job_deleted",
+  NEW_JOB_POSTING = "new_job_posting",
+  JOB_POSTING_UPDATED = "job_posting_updated",
+  JOB_POSTING_REMOVED = "job_posting_removed",
+  RECOMMENDATION_APPROVED = "recommendation_approved",
+  RECOMMENDATION_REJECTED = "recommendation_rejected",
+  NEW_RECOMMENDATION = "new_recommendation",
+  REPORT_UPDATE = "report_update",
+  
 }
 
 export enum DeliveryChannel {
@@ -24,6 +42,7 @@ export enum DigestFrequency {
   IMMEDIATE = 'immediate',
   HOURLY = 'hourly',
   DAILY = 'daily',
+  WEEKLY = 'weekly',
 }
 
 @Entity('notifications')
@@ -58,6 +77,10 @@ export class Notification {
     enum: DeliveryChannel,
   })
   deliveryChannel: DeliveryChannel;
+
+  @Column({ default: false })
+  read: boolean;
+
 
   @Column({ nullable: true })
   scheduledFor: Date;

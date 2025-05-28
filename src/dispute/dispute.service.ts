@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In, DataSource } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { Dispute, DisputeStatus, DisputeOutcome } from './entities/dispute.entity';
 import { DisputeVote, VoteDecision } from './entities/dispute-vote.entity';
 import { User } from '../user/entities/user.entity';
@@ -8,6 +8,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { CreateDisputeDto } from './dto/create-dispute.dto';
 import { VoteDisputeDto } from './dto/vote-dispute.dto';
 import { Role } from '../auth/enums/role.enum';
+import { DeliveryChannel, NotificationType } from '@src/notifications/entities/notification.entity';
 
 @Injectable()
 export class DisputeService {
@@ -38,7 +39,6 @@ export class DisputeService {
       const savedDispute = await queryRunner.manager.save(dispute);
       await this.assignJurors(savedDispute.id, queryRunner);
       
-      // Get the managed entity with all relations before committing
       const populatedDispute = await queryRunner.manager.findOne(Dispute, {
         where: { id: savedDispute.id },
         relations: ['votes', 'votes.juror', 'creator'],
@@ -69,13 +69,14 @@ export class DisputeService {
 
     try {
       const dispute = await queryRunner.manager.getRepository(Dispute).findOne({
-          where: { id: disputeId },
-          lock: { mode: 'pessimistic_write' },
-        });      if (!dispute) {
+        where: { id: disputeId },
+        lock: { mode: 'pessimistic_write' },
+      });
+
+      if (!dispute) {
         throw new NotFoundException('Dispute not found');
       }
 
-      // Get eligible jurors using correct role enum and field
       const eligibleJurors = await this.userRepository
         .createQueryBuilder('u')
         .where(':role = ANY(u.roles)', { role: Role.JUROR })
@@ -86,28 +87,29 @@ export class DisputeService {
         throw new BadRequestException('Not enough eligible jurors available');
       }
 
-      // Randomly select 3-5 jurors based on their reputation
       const numberOfJurors = Math.min(5, Math.max(3, Math.floor(eligibleJurors.length / 3)));
       const selectedJurors = eligibleJurors
-        .slice(0, numberOfJurors * 2) // Take top jurors by reputation
-        .sort(() => Math.random() - 0.5) // Shuffle
-        .slice(0, numberOfJurors); // Take required number
+        .slice(0, numberOfJurors * 2)
+        .sort(() => Math.random() - 0.5)
+        .slice(0, numberOfJurors);
 
       dispute.assignedJurorIds = selectedJurors.map(juror => juror.id);
       dispute.status = DisputeStatus.VOTING;
-      dispute.votingDeadline = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
+      dispute.votingDeadline = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h from now
 
       await queryRunner.manager.save(dispute);
 
-      // Create all notifications in parallel using the same transaction
+      // Use createNotification instead of create
       await Promise.all(selectedJurors.map(juror => 
-        this.notificationsService.create({
+        this.notificationsService.createNotification({
           userId: juror.id,
-          type: 'DISPUTE_ASSIGNMENT',
-          message: `New Dispute Assignment: You have been selected as a juror for dispute: ${dispute.title}`,
-          data: { disputeId: dispute.id },
-        }, queryRunner.manager)
+          type: NotificationType.DISPUTE_ASSIGNMENT,
+          content: { message: `New Dispute Assignment: You have been selected as a juror for dispute: ${dispute.title}`, disputeId: dispute.id },
+          deliveryChannel: DeliveryChannel.PUSH,
+          priority: 0,
+        })
       ));
+      
 
       if (shouldManageTransaction) {
         await queryRunner.commitTransaction();
@@ -152,9 +154,8 @@ export class DisputeService {
         throw new BadRequestException('Voting deadline has passed');
       }
 
-      // Check if juror has already voted - protected by transaction
       const existingVote = await queryRunner.manager.getRepository(DisputeVote).findOne({
-                where: { disputeId, jurorId },
+        where: { disputeId, jurorId },
       });
 
       if (existingVote) {
@@ -170,10 +171,9 @@ export class DisputeService {
 
       const savedVote = await queryRunner.manager.save(vote);
 
-      // Check if all jurors have voted - protected against multiple finalization
       const totalVotes = await queryRunner.manager
-      .getRepository(DisputeVote)
-      .count({ where: { disputeId } });
+        .getRepository(DisputeVote)
+        .count({ where: { disputeId } });
       if (totalVotes === dispute.assignedJurorIds.length && dispute.status === DisputeStatus.VOTING) {
         await this.finalizeDispute(disputeId, queryRunner);
       }
@@ -202,17 +202,15 @@ export class DisputeService {
       throw new NotFoundException('Dispute not found');
     }
 
-    const votes = await voteRepository.find({
-      where: { disputeId },
-    });
+    const votes = await voteRepository.find({ where: { disputeId } });
 
     const voteCount = {
       [VoteDecision.UPHOLD]: votes.filter((v: DisputeVote) => v.decision === VoteDecision.UPHOLD).length,
       [VoteDecision.REJECT]: votes.filter((v: DisputeVote) => v.decision === VoteDecision.REJECT).length,
       [VoteDecision.ABSTAIN]: votes.filter((v: DisputeVote) => v.decision === VoteDecision.ABSTAIN).length,
     };
+    
 
-    // Calculate outcome with proper status handling
     const totalNonAbstainVotes = voteCount[VoteDecision.UPHOLD] + voteCount[VoteDecision.REJECT];
     if (totalNonAbstainVotes === 0) {
       dispute.outcome = DisputeOutcome.ESCALATED;
@@ -230,34 +228,36 @@ export class DisputeService {
 
     await repository.save(dispute);
 
-    // Notify creator of outcome - use the transaction if available
-    await this.notificationsService.create({
+    await this.notificationsService.createNotification({
       userId: dispute.creatorId,
-      type: 'DISPUTE_RESOLVED',
-      message: `Dispute Resolution: Your dispute "${dispute.title}" has been resolved with outcome: ${dispute.outcome}`,
-      data: { disputeId: dispute.id, outcome: dispute.outcome },
-    }, queryRunner?.manager);
+      type: NotificationType.DISPUTE_ASSIGNMENT,
+      content: {
+        message: `Dispute Resolution: Your dispute "${dispute.title}" has been resolved with outcome: ${dispute.outcome}`,
+        disputeId: dispute.id,
+        outcome: dispute.outcome,
+      },
+      priority: 10,
+      deliveryChannel: DeliveryChannel.PUSH,
+    });
+    
   }
-  async getDispute(id: string, queryRunner?: any): Promise<Dispute> {
-    const repository = queryRunner?.manager.getRepository(Dispute) || this.disputeRepository;
-    const dispute = await repository.findOne({
+
+  async getDispute(id: string): Promise<Dispute> {
+    const dispute = await this.disputeRepository.findOne({
       where: { id },
       relations: ['votes', 'votes.juror', 'creator'],
     });
-
     if (!dispute) {
       throw new NotFoundException('Dispute not found');
     }
-
     return dispute;
   }
 
   async listDisputes(status?: DisputeStatus): Promise<Dispute[]> {
-    const where = status ? { status } : {};
-    return this.disputeRepository.find({
-      where,
-      relations: ['votes', 'creator'],
-      order: { createdAt: 'DESC' },
-    });
+    const query = this.disputeRepository.createQueryBuilder('dispute');
+    if (status) {
+      query.where('dispute.status = :status', { status });
+    }
+    return query.getMany();
   }
-} 
+}

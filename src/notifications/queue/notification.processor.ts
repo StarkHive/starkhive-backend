@@ -21,11 +21,12 @@ export class NotificationProcessor {
     private emailStrategy: EmailStrategy,
     private pushStrategy: PushStrategy,
   ) {
-    this.strategies = new Map([
-      ['webhook', webhookStrategy],
-      ['email', emailStrategy],
-      ['push', pushStrategy],
+    this.strategies = new Map<string, any>([
+      ['webhook', this.webhookStrategy],
+      ['email', this.emailStrategy],
+      ['push', this.pushStrategy],
     ]);
+    
   }
 
   @Process('send')
@@ -58,8 +59,12 @@ export class NotificationProcessor {
 
       return success;
     } catch (error) {
-      this.logger.error(`Failed to process notification: ${error.message}`, error.stack);
-      throw error;
+      if (error instanceof Error) {
+        this.logger.error(`Failed to process notification: ${error.message}`, error.stack);
+      } else {
+        this.logger.error('Unknown error occurred during notification processing');
+      }
+      
     }
   }
 
@@ -98,8 +103,12 @@ export class NotificationProcessor {
         );
       }
     } catch (error) {
-      this.logger.error(`Failed to process digest: ${error.message}`, error.stack);
-      throw error;
+      if (error instanceof Error) {
+        this.logger.error(`Failed to process notification: ${error.message}`, error.stack);
+      } else {
+        this.logger.error('Unknown error occurred during notification processing');
+      }
+      
     }
   }
 

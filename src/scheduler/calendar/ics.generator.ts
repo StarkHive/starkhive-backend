@@ -1,41 +1,47 @@
 import { Injectable } from '@nestjs/common';
 import { InterviewSlot } from '../entities/interview-slot.entity';
-import { createEvent } from 'ics';
+import { createEvent, EventAttributes, EventStatus } from 'ics';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class IcsGenerator {
   async generateIcs(slot: InterviewSlot): Promise<string> {
     return new Promise((resolve, reject) => {
-      const start = new Date(slot.startTime);
-      const end = new Date(slot.endTime);
+      const startDate = new Date(slot.startTime);
+      const endDate = new Date(slot.endTime);
 
-      const event = {
+      const start: [number, number, number, number, number] = [
+        startDate.getFullYear(),
+        startDate.getMonth() + 1,
+        startDate.getDate(),
+        startDate.getHours(),
+        startDate.getMinutes(),
+      ];
+
+      const end: [number, number, number, number, number] = [
+        endDate.getFullYear(),
+        endDate.getMonth() + 1,
+        endDate.getDate(),
+        endDate.getHours(),
+        endDate.getMinutes(),
+      ];
+
+      // Use EventStatus type here:
+      const status: EventStatus = 'CONFIRMED';
+
+      const event: EventAttributes = {
         uid: uuidv4(),
-        start: [
-          start.getFullYear(),
-          start.getMonth() + 1,
-          start.getDate(),
-          start.getHours(),
-          start.getMinutes(),
-        ],
-        end: [
-          end.getFullYear(),
-          end.getMonth() + 1,
-          end.getDate(),
-          end.getHours(),
-          end.getMinutes(),
-        ],
+        start,
+        end,
         title: slot.title,
         description: slot.description,
         location: slot.location || 'Online Meeting',
-        organizer: { 
-          name: 'Interview Scheduler', 
-          email: 'noreply@interviews.com' 
+        organizer: {
+          name: 'Interview Scheduler',
+          email: 'noreply@interviews.com',
         },
         attendees: this.generateAttendees(slot),
-        status: 'CONFIRMED',
-        busyStatus: 'BUSY',
+        status,  // Correctly typed
         alarms: [
           {
             action: 'display',
@@ -49,25 +55,20 @@ export class IcsGenerator {
         if (error) {
           reject(error);
         } else {
-          resolve(value);
+          resolve(value || '');
         }
       });
     });
   }
 
   private generateAttendees(slot: InterviewSlot): any[] {
-    const attendees = [];
-    
-    if (slot.participants && slot.participants.length > 0) {
-      attendees.push(...slot.participants.map(email => ({
-        name: email.split('@')[0],
-        email,
-        rsvp: true,
-        partstat: 'NEEDS-ACTION',
-        role: 'REQ-PARTICIPANT',
-      })));
-    }
-
-    return attendees;
+    if (!slot.participants) return [];
+    return slot.participants.map(email => ({
+      name: email.split('@')[0],
+      email,
+      rsvp: true,
+      partstat: 'NEEDS-ACTION',
+      role: 'REQ-PARTICIPANT',
+    }));
   }
 }

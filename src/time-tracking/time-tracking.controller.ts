@@ -6,9 +6,9 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { User } from '../user/entities/user.entity';
-import { Role } from '../auth/roles.enum';
 import { Buffer } from 'buffer';
 import { StartTrackingDto } from './dto/start-tracking.dto';
+import { Role } from '@src/auth/enums/role.enum';
 
 @Controller('time-tracking')
 @UseGuards(JwtAuthGuard, RolesGuard)

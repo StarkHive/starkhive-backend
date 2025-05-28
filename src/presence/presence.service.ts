@@ -50,7 +50,7 @@ export class PresenceService {
     status: PresenceStatus,
   ): Promise<void> {
     await this.userRepository.update(userId, {
-      resenceStatus: status,
+      presenceStatus: status,
     });
     this.logger.log(`User ${userId} status updated to ${status}`);
   }

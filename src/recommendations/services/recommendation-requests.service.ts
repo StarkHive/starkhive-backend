@@ -12,6 +12,7 @@ import { UpdateRecommendationRequestDto } from '../dto/update-recommendation-req
 import { UserService } from '@src/user/user.service';
 import { NotificationsService } from '../../notifications/notifications.service';
 import { RequestStatus } from '../enums/RequestStatus.enum';
+import { NotificationType } from '@src/notifications/entities/notification.entity';
 
 @Injectable()
 export class RecommendationRequestsService {
@@ -58,11 +59,14 @@ export class RecommendationRequestsService {
 
     const savedRequest = await this.requestRepository.save(request);
 
-    await this.notificationsService.create({
+    await this.notificationsService.createNotification({
       userId: requestee.id,
-      type: 'RECOMMENDATION_REQUEST',
-      message: `${requester.username} has requested a recommendation from you.`,
+      type: NotificationType.MESSAGE, // or use a more appropriate type if defined
+      content: {
+        message: `${requester.username} has requested a recommendation from you.`,
+      },
     });
+    
 
     return savedRequest;
   }
@@ -113,27 +117,32 @@ export class RecommendationRequestsService {
 
     Object.assign(request, updateRequestDto);
     const updatedRequest = await this.requestRepository.save(request);
-
     if (updateRequestDto.status === RequestStatus.ACCEPTED) {
-      await this.notificationsService.create({
+      await this.notificationsService.createNotification({
         userId: request.requester.id,
-        type: 'REQUEST_ACCEPTED',
-        message: `${request.requestee.username} has accepted your recommendation request.`,
+        type: NotificationType.REQUEST_ACCEPTED,
+        content: {
+          message: `${request.requestee.username} has accepted your recommendation request.`,
+        },
       });
     } else if (updateRequestDto.status === RequestStatus.DECLINED) {
-      await this.notificationsService.create({
+      await this.notificationsService.createNotification({
         userId: request.requester.id,
-        type: 'REQUEST_DECLINED',
-        message: `${request.requestee.username} has declined your recommendation request.`,
+        type: NotificationType.REQUEST_DECLINED,
+        content: {
+          message: `${request.requestee.username} has declined your recommendation request.`,
+        },
       });
     } else if (updateRequestDto.status === RequestStatus.COMPLETED) {
-      await this.notificationsService.create({
+      await this.notificationsService.createNotification({
         userId: request.requester.id,
-        type: 'REQUEST_COMPLETED',
-        message: `${request.requestee.username} has completed your recommendation request.`,
+        type: NotificationType.REQUEST_COMPLETED,
+        content: {
+          message: `${request.requestee.username} has completed your recommendation request.`,
+        },
       });
     }
-
+    
     return updatedRequest;
   }
 

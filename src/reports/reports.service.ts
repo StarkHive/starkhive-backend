@@ -5,6 +5,7 @@ import { REPORT_CATEGORIES, REPORT_REASONS } from './constants/report.constants'
 import { NotificationsService } from '../notifications/notifications.service';
 import { Appeal } from './appeal.entity';
 import { EntityManager } from 'typeorm';
+import { DeliveryChannel, NotificationType } from '@src/notifications/entities/notification.entity';
 
 @Injectable()
 export class ReportsService {
@@ -97,10 +98,12 @@ export class ReportsService {
     const updatedReport = await this.reportsRepository.save(report);
 
     // Send notification to the reporter
-    await this.notificationsService.create({
+    await this.notificationsService.createNotification({
       userId: report.reporter.id,
-      message: `Your report (ID: ${report.id}) has been updated to status: ${status}`,
-      type: 'report_update',
+      type: NotificationType.REPORT_UPDATE,
+      content: { message: `Your report (ID: ${report.id}) has been updated to status: ${status}` },
+      deliveryChannel: DeliveryChannel.PUSH,
+      priority: 0,
     });
 
     return updatedReport;

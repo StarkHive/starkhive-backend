@@ -33,8 +33,13 @@ export class WebhookStrategy implements NotificationStrategy {
 
       return true;
     } catch (error) {
-      this.logger.error(`Failed to send webhook notification: ${error.message}`, error.stack);
+      if (error instanceof Error) {
+        this.logger.error(`Failed to send push notification: ${error.message}`, error.stack);
+      } else {
+        this.logger.error('Unknown error occurred while sending push notification');
+      }
       return false;
     }
+    
   }
 } 

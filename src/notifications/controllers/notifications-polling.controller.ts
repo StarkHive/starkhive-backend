@@ -18,7 +18,8 @@ export class NotificationsPollingController {
       return { error: "User ID is required" }
     }
 
-    const notifications = await this.notificationsService.findByUser(userId)
+    const notifications = await this.notificationsService.findByUser(userId.toString());
+
 
     // If lastSeen is provided, filter notifications to only return newer ones
     if (lastSeen) {

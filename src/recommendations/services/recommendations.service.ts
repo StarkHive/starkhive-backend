@@ -11,6 +11,7 @@ import { CreateRecommendationDto } from '../dto/create-recommendation.dto';
 import { UpdateRecommendationDto } from '../dto/update-recommendation.dto';
 import { NotificationsService } from '../../notifications/notifications.service';
 import { UserService } from '@src/user/user.service';
+import { NotificationType } from '@src/notifications/entities/notification.entity';
 
 @Injectable()
 export class RecommendationsService {
@@ -45,10 +46,12 @@ export class RecommendationsService {
     const savedRecommendation =
       await this.recommendationRepository.save(recommendation);
 
-    await this.notificationsService.create({
+    await this.notificationsService.createNotification({
       userId: recipient.id,
-      type: 'NEW_RECOMMENDATION',
-      message: `${author.username} has written you a recommendation.`,
+      type: NotificationType.NEW_RECOMMENDATION,
+      content: {
+        message: `${author.username} has written you a recommendation.`,
+      },
     });
 
     return savedRecommendation;
@@ -124,18 +127,22 @@ export class RecommendationsService {
       await this.recommendationRepository.save(recommendation);
 
     if (updateRecommendationDto.status === RecommendationStatus.APPROVED) {
-      await this.notificationsService.create({
+      await this.notificationsService.createNotification({
         userId: recommendation.author.id,
-        type: 'RECOMMENDATION_APPROVED',
-        message: `Your recommendation for ${recommendation.recipient.username} has been approved.`,
+        type: NotificationType.RECOMMENDATION_APPROVED,
+        content: {
+          message: `Your recommendation for ${recommendation.recipient.username} has been approved.`,
+        },
       });
     } else if (
       updateRecommendationDto.status === RecommendationStatus.REJECTED
     ) {
-      await this.notificationsService.create({
+      await this.notificationsService.createNotification({
         userId: recommendation.author.id,
-        type: 'RECOMMENDATION_REJECTED',
-        message: `Your recommendation for ${recommendation.recipient.username} has been rejected.`,
+        type: NotificationType.RECOMMENDATION_REJECTED,
+        content: {
+          message: `Your recommendation for ${recommendation.recipient.username} has been rejected.`,
+        },
       });
     }
 

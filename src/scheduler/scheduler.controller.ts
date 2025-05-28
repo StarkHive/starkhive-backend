@@ -26,7 +26,10 @@ import {
       try {
         return await this.schedulerService.createSlot(createSlotDto);
       } catch (error) {
-        throw new BadRequestException(error.message);
+        if (error instanceof Error) {
+          throw new BadRequestException(error.message);
+        }
+        throw new BadRequestException('Unknown error occurred');
       }
     }
   
@@ -46,7 +49,10 @@ import {
       try {
         return await this.schedulerService.updateSlot(id, updateSlotDto);
       } catch (error) {
-        throw new BadRequestException(error.message);
+        if (error instanceof Error) {
+          throw new BadRequestException(error.message);
+        }
+        throw new BadRequestException('Unknown error occurred');
       }
     }
   
@@ -66,7 +72,11 @@ import {
         res.setHeader('Content-Disposition', `attachment; filename=interview-slot-${id}.ics`);
         return res.status(HttpStatus.OK).send(icsData);
       } catch (error) {
+        if (error instanceof Error) {
+          throw new BadRequestException(error.message);
+        }
         throw new BadRequestException('Failed to generate ICS file');
       }
     }
   }
+  
