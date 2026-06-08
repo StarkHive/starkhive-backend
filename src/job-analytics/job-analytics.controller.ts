@@ -7,6 +7,7 @@ import {
   Query,
   ParseIntPipe,
   Req,
+  UseGuards,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { JobAnalyticsService } from './job-analytics.service';
@@ -19,6 +20,12 @@ import {
 } from './dto/create-job-analytic.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+
+// Security fix: Import guards and role decorator for protecting the test endpoint
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { Role } from '../auth/enums/role.enum';
 
 @Controller('job-analytics')
 export class JobAnalyticsController {
@@ -136,7 +143,10 @@ async getJobViewCount(@Param('jobId', ParseIntPipe) jobId: number, @Query() quer
     return dashboard;
   }
 
+  // Security fix: protect test endpoint with authentication and authorization guards, limit to ADMIN, suppress stack trace leakage
   @Get('test')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   async testAnalytics() {
     // Create a basic test event with integer job ID
     const testEvent = {
@@ -160,11 +170,10 @@ async getJobViewCount(@Param('jobId', ParseIntPipe) jobId: number, @Query() quer
         testEvent,
       };
     } catch (error:any) {
+      // Security fix: do not expose internal error details or stack traces
       return {
         success: false,
         message: 'Test endpoint error',
-        error: error.message,
-        stack: error.stack,
       };
     }
   }

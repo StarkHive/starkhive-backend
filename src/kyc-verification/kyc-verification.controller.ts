@@ -87,10 +87,8 @@ export class KycVerificationController {
       throw new BadRequestException('No file uploaded');
     }
 
-    // Use the authenticated user's ID if not specified
-    if (!createKycDocumentDto.userId) {
-      createKycDocumentDto.userId = req.user.id;
-    }
+    // Always use the authenticated user's ID to prevent mass assignment/IDOR
+    createKycDocumentDto.userId = req.user.id;
     
     // Validate file type
     const allowedMimeTypes = this.configService.get<string[]>('kyc.allowedMimeTypes') ?? [
